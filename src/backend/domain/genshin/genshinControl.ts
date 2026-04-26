@@ -3691,8 +3691,10 @@ export class GenshinControl extends AbstractControl<GenshinControlState> {
 
         const out: Record<number, number[]> = defaultMap('Array');
         for (let group of groups) {
-          for (let tagId of group.TagIds) {
-            out[tagId].push(group.GroupId);
+          if (group.TagIds) {
+            for (let tagId of group.TagIds) {
+              out[tagId].push(group.GroupId);
+            }
           }
         }
 
