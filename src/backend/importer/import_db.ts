@@ -422,7 +422,9 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
         
         if (table.jsonFileType === 'kv_pairs') {
           const parsed = Object.entries(JSON.parse(fileContents)).map(([Key, Value]) => ({Key, Value}));
-          json.push(...parsed);
+          for (let item of parsed) {
+            json.push(item);
+          }
         } else if (table.jsonFileType === 'line_dat') {
           let lines: string[] = fileContents.split(/\n/g);
           const startIndex = json.length;
@@ -434,7 +436,9 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
           if (!Array.isArray(parsed)) {
             parsed = Object.values(parsed);
           }
-          json.push(...parsed);
+          for (let item of parsed) {
+            json.push(item);
+          }
         }
       }
       totalRows = json.length;
