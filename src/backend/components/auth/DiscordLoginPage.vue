@@ -13,10 +13,13 @@
 
         <div class="alignCenter w100p flexColumn">
           <p style="text-align: center;max-width:400px">
-            This is an internal tool used by the editors of wikis related to certain games.</p>
+            Đây là bản fork đã qua chỉnh sửa đổi nhằm chạy trang cho wiki game tiếng Việt nào đó.</p>
           <p style="text-align: center;max-width:400px" class="info-notice spacer10-vert">
             To access {{ SITE_SHORT_TITLE }}, you must be an <strong>autoconfirmed</strong> editor on at least one of those wikis,
             or any of its other language interwikis, and have at least <strong>100 edits</strong>.
+          </p>
+          <p style="text-align: center;max-width:400px">
+            Xin lưu ý rằng chỉ phần TCG hoạt động, các tính năng khác xin hãy sử dụng web Đường chính, xin cảm ơn.
           </p>
         </div>
 
@@ -37,17 +40,6 @@
 
           <a :href="`/auth/discord?cont=` + myCont" role="button" class="spacer15-top spacer10-bottom primary primary--2 big">Login</a>
         </div>
-      </div>
-    </section>
-    <section class="card">
-      <div class="content">
-        <p class="spacer5-bottom">Some tools are available to visitors:</p>
-        <ul>
-          <li><a href="/genshin/OL">Genshin Impact OL Tool</a></li>
-          <li><a href="/hsr/OL">Star Rail OL Tool</a></li>
-          <li><a href="/zenless/OL">Zenless Zone Zero OL Tool</a></li>
-          <li><a href="/wuwa/OL">Wuthering Waves OL Tool</a></li>
-        </ul>
       </div>
     </section>
   </div>
