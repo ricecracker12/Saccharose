@@ -132,8 +132,10 @@ export interface GCGSkillExcelConfigData {
   MappedSkillTagList?: GCGSkillTagExcelConfigData[],
 
   WikiName?: string,
+  WikiNameEN?: string,
   WikiDesc?: string,
   WikiType?: string,
+  WikiTypeEN?: string,
   SkillDamage?: GCGCharSkillDamage;
 }
 
@@ -645,11 +647,13 @@ export interface GCGCommonCard {
   MappedSkillList: GCGSkillExcelConfigData[],
 
   WikiName?: string,
+  WikiNameEN?: string,
   WikiNameTextMapHash?: number,
   WikiDesc?: string,
   WikiImage?: string,
   WikiGoldenImage?: string,
   WikiType?: string,
+  WikiTypeEN?: string,
   WikiElement?: string,
   WikiWeapon?: string,
   WikiFaction?: string,

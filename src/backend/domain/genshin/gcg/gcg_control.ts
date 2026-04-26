@@ -722,6 +722,12 @@ export class GCGControl {
       card.WikiNameTextMapHash = card.NameTextMapHash;
     }
 
+    if (card.WikiNameTextMapHash) {
+      card.WikiNameEN = this.ctrl.normText(await this.ctrl.getTextMapItem('EN', card.WikiNameTextMapHash), 'EN', { skipHtml2Quotes: true, plaintext: true });
+    } else {
+      card.WikiNameEN = card.WikiName;
+    }
+
     const goldenImageExists: boolean = await this.ctrl.cached('GCG:GoldenImageExists:' + card.Id, 'boolean', async () => {
       return !!card.WikiImage && (await fsExists(path.resolve(IMAGEDIR_GENSHIN_EXT, './' + card.WikiImage + '_Golden.png')));
     });
@@ -734,12 +740,15 @@ export class GCGControl {
     switch (card.CardType) {
       case 'GCG_CARD_ASSIST':
         card.WikiType = (await this.ctrl.selectManualTextMapConfigDataById('UI_GCG_CARD_TYPE_SUPPORT')).TextMapContentText;
+        card.WikiTypeEN = 'Support';
         break;
       case 'GCG_CARD_EVENT':
         card.WikiType = (await this.ctrl.selectManualTextMapConfigDataById('UI_GCG_CARD_TYPE_EVENT')).TextMapContentText;
+        card.WikiTypeEN = 'Event';
         break;
       case 'GCG_CARD_MODIFY':
         card.WikiType = (await this.ctrl.selectManualTextMapConfigDataById('UI_GCG_CARD_TYPE_EQUIP')).TextMapContentText;
+        card.WikiTypeEN = 'Equipment';
         break;
       case 'GCG_CARD_ONSTAGE':
         break;
@@ -747,9 +756,11 @@ export class GCGControl {
         break;
       case 'GCG_CARD_SUMMON':
         card.WikiType = (await this.ctrl.selectManualTextMapConfigDataById('UI_GCG_CARD_TYPE_SUMMON')).TextMapContentText;
+        card.WikiTypeEN = 'Summon';
         break;
       case 'GCG_CARD_CHARACTER':
         card.WikiType = (await this.ctrl.selectManualTextMapConfigDataById('UI_GCG_CARD_TYPE_CHAR')).TextMapContentText;
+        card.WikiTypeEN = 'Character';
         break;
     }
 
@@ -998,8 +1009,19 @@ export class GCGControl {
     await this.setSkillWikiText(skill);
 
     skill.WikiName = await this.normGcgText(skill.NameText);
+    if (skill.NameTextMapHash) {
+      skill.WikiNameEN = this.ctrl.normText(await this.ctrl.getTextMapItem('EN', skill.NameTextMapHash), 'EN', { skipHtml2Quotes: true, plaintext: true });
+    } else {
+      skill.WikiNameEN = skill.WikiName;
+    }
     skill.WikiDesc = await this.normGcgText(skill.DescText);
     skill.WikiType = skill.MappedSkillTagList?.find(tag => tag.Type !== 'GCG_SKILL_TAG_NONE')?.NameText;
+    const typeTag = skill.MappedSkillTagList?.find(tag => tag.Type !== 'GCG_SKILL_TAG_NONE');
+    if (typeTag && typeTag.NameTextMapHash) {
+      skill.WikiTypeEN = this.ctrl.normText(await this.ctrl.getTextMapItem('EN', typeTag.NameTextMapHash), 'EN', { skipHtml2Quotes: true, plaintext: true });
+    } else {
+      skill.WikiTypeEN = skill.WikiType;
+    }
 
     const seenAlready: Set<string> = new Set();
 

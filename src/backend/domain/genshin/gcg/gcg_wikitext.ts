@@ -18,7 +18,7 @@ export async function generateSkillPage(gcg: GCGControl, parentCard: GCGCommonCa
   sb.line(`{{Genius Invokation TCG Skill Infobox`);
   sb.setPropPad(11);
   sb.prop('id', skill.Id);
-  sb.prop('image', `${skill.WikiName} ${parentCard.WikiType} Skill.png`, true);
+  sb.prop('image', `${skill.WikiNameEN} ${parentCard.WikiTypeEN} Skill.png`, true);
   sb.prop('type', skill.WikiType);
   sb.prop('character', parentCard.WikiName);
   sb.prop('element', parentCard.WikiElement);
@@ -69,7 +69,7 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
 
   sb.prop('id', card.Id);
   sb.prop('title', card.WikiName);
-  sb.prop('image', `${card.WikiName} ${card.WikiType}.png`, true);
+  sb.prop('image', `${card.WikiNameEN} ${card.WikiTypeEN}.png`, true);
   sb.prop('type', card.WikiType);
   if (isActionCard(card)) {
     sb.prop('group', card.MappedTagList.filter(x => !!x.Type).map(x => x.NameText).join(';'));
@@ -191,14 +191,14 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
   if (isCharacterCard(card) && card.CardFace) {
     sb.line('==Thư Viện==');
     sb.line('<gallery>');
-    sb.line(`${card.WikiName} TCG Avatar Icon.png|Biểu tượng hình đại diện`)
+    sb.line(`${card.WikiNameEN} TCG Avatar Icon.png|Biểu tượng hình đại diện`)
     sb.line('</gallery>');
     sb.line();
     sb.line('==Hoạt Ảnh==');
     sb.line('{{Preview');
     sb.setPropPad(9)
     sb.prop('size', '200px');
-    sb.prop('file1', `${card.WikiName} Dynamic Skin`);
+    sb.prop('file1', `${card.WikiNameEN} Dynamic Skin`);
     sb.prop('caption', 'Hoạt ảnh nhàn rỗi Mặt Bài Kỳ Ảo');
     sb.line('}}');
     sb.line();
@@ -262,7 +262,7 @@ export async function generateStageTemplate(control: GCGControl, stage: GCGGameE
     // Active/Lineup:
     sb.prop('lineup', stage.EnemyCardGroup.WikiActiveText);
 
-    // Action:
+    // Action:${card.WikiType}
     sb.prop('action', stage.EnemyCardGroup.WikiActionText);
 
     // Reserve:
