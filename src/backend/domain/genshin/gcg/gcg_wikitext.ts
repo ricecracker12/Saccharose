@@ -36,18 +36,18 @@ export async function generateSkillPage(gcg: GCGControl, parentCard: GCGCommonCa
   sb.prop('effect', skill.WikiDesc);
   sb.prop('order', index + 1);
   sb.line('}}');
-  sb.line(`'''${skill.WikiName}''' is a [[${parentCard.WikiType} ${skill.WikiType}|${skill.WikiType}]] ` +
-    `for [[${parentCard.WikiName} (${parentCard.WikiType})|${parentCard.WikiName}]] in [[Genius Invokation TCG]].`);
+  sb.line(`'''${skill.WikiName}''' là một [[${parentCard.WikiType} ${skill.WikiType}|${skill.WikiType}]] ` +
+    `thuộc [[${parentCard.WikiName} (${parentCard.WikiType})|${parentCard.WikiName}]] trong [[Thất Thánh Triệu Hồi]].`);
   sb.line();
 
-  sb.line('==Other Languages==');
+  sb.line('==Ngôn Ngữ Khác==');
   sb.line((await ol_gen_from_id(gcg.ctrl, skill.NameTextMapHash))?.result);
   sb.line();
-  sb.line('==Change History==');
+  sb.line('==Lịch Sử Cập Nhật==');
   const crRecord = await gcg.ctrl.excelChangelog.selectChangeRefAddedAt(skill.Id, 'GCGSkillExcelConfigData');
-  sb.line('{{Change History|' + (crRecord?.version?.label || '<!-- version -->') + '}}');
+  sb.line('{{Change History|' + (crRecord?.version?.label || '<!-- phiên bản -->') + '}}');
   sb.line();
-  sb.line('==Navigation==');
+  sb.line('==Điều Hướng==');
   sb.line(`{{Genius Invokation TCG Skill Navbox|${parentCard.WikiName}}}`);
   sb.line();
 
@@ -119,76 +119,82 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
   let preType = '';
   for (let tag of card.MappedTagList.filter(x => !!x.Type)) {
     if (tag.Type === 'GCG_TAG_TALENT') {
-      preType += `[[Talent Card|Talent]] `;
+      preType += `[[Thẻ Thiên Phú|Thiên Phú]] `;
     } else if (tag.Type === 'GCG_TAG_SLOWLY') {
-      preType += `[[Talent Combat Action Card|Combat Action]] `;
+      preType += `[[Thẻ Hành Động Chiến Đấu Thiên Phú|Hành Động Chiến Đấu]] `;
     } else if (tag.Type === 'GCG_TAG_FOOD') {
-      preType += `[[Food Card|Food]] `;
+      preType += `[[Thẻ Thức Ăn|Thức Ăn]] `;
     } else if (tag.Type === 'GCG_TAG_PLACE') {
-      preType += `[[Location Card|Location]] `;
+      preType += `[[Thẻ Địa Danh|Địa Danh]] `;
     } else if (tag.Type === 'GCG_TAG_ALLY') {
-      preType += `[[Companion Card|Companion]] `;
+      preType += `[[Thẻ Đồng Đội|Đồng Đội]] `;
     } else if (tag.Type === 'GCG_TAG_ITEM') {
-      preType += `[[Item Card|Item]] `;
+      preType += `[[Thẻ Đạo Cụ|Đạo Cụ]] `;
     } else if (tag.Type === 'GCG_TAG_RESONANCE') {
-      preType += `[[Elemental Resonance Card|Elemental Resonance]] `;
+      preType += `[[Thẻ Cộng Hưởng Nguyên Tố|Cộng Hưởng Nguyên Tố]] `;
     }
   }
 
-  const wta: string = /^[aeiou]/i.test(preType || card.WikiType) ? 'an' : 'a'; // WTA: Wiki Type (Indefinite) Article
-
   if (isCharacterCard(card)) {
     if (card.IsCanObtain) {
-      sb.line(`'''${card.WikiName}''' is ${wta} ${preType}[[${card.WikiType}]] obtained in [[Genius Invokation TCG]].`);
+      sb.line(`'''${card.WikiName}''' là một ${preType}[[${card.WikiType}]] obtained trong [[Thất Thánh Triệu Hồi]].`);
     } else {
-      sb.line(`'''${card.WikiName}''' is an unobtainable ${preType}[[${card.WikiType}]] in [[Genius Invokation TCG]].`);
+      sb.line(`'''${card.WikiName}''' is an unobtainable ${preType}[[${card.WikiType}]] trong [[Thất Thánh Triệu Hồi]].`);
     }
   } else {
     let addendum = '';
     if (deckCard?.RelatedCharacter) {
       const relatedCharName = deckCard?.RelatedCharacter?.WikiName;
-      addendum += ` for [[${relatedCharName} (Character Card)|${relatedCharName}]]`;
+      addendum += ` dành cho [[${relatedCharName} (Thẻ Nhân Vật)|${relatedCharName}]]`;
     }
-    sb.line(`'''${card.WikiName}''' is ${wta} ${preType}[[${card.WikiType}]]${addendum} in [[Genius Invokation TCG]].`);
+    sb.line(`'''${card.WikiName}''' là một ${preType}[[${card.WikiType}]]${addendum} trong [[Thất Thánh Triệu Hồi]].`);
   }
   sb.line();
 
   if (isCharacterCard(card)) {
-    sb.line('==Skills==');
+    sb.line('==Kỹ Năng==');
     sb.line('{{Genius Invokation TCG Skills Table}}');
     sb.line();
-    sb.line('==Talent Cards==');
+    sb.line('==Thẻ Thiên Phú==');
     sb.line('{{Genius Invokation TCG Talent Cards Table}}');
     sb.line();
   }
   if (deckCard && deckCard.ProficiencyReward && deckCard.ProficiencyReward.ProficiencyRewardList.length) {
-    sb.line('==Proficiency Reward==');
+    sb.line('==Thưởng Độ Thuần Phục==');
     for (let prof of deckCard.ProficiencyReward.ProficiencyRewardList) {
       const cardFaceItem = prof?.Reward?.RewardItemList
         ?.find(item => item?.Material?.MaterialType === 'MATERIAL_GCG_CARD_FACE')?.Material;
       if (cardFaceItem) {
         const golden: boolean = cardFaceItem.Icon?.toLowerCase()?.includes('gold') || false;
-        sb.line(`After reaching Proficiency ${prof.Proficiency}, the following Dynamic Skin is obtained:<br>` +
-          `{{TCG Card|${cardFaceItem.NameText}|1${golden ? '|golden=1' : ''}|caption=1}}`);
-        sb.line();
+        const platinum: boolean = cardFaceItem.Icon?.toLowerCase()?.includes('platinum') || false;
+        if (golden) {
+          sb.line(`After reaching Proficiency ${prof.Proficiency}, the following Dynamic Skin is obtained:<br>` +
+            `{{TCG Card|${cardFaceItem.NameText}|1|golden=1|caption=1}}`);
+          sb.line();
+        }
+        if (platinum) {
+          sb.line(`After reaching Proficiency ${prof.Proficiency}, the following Dynamic Skin is obtained:<br>` +
+            `{{TCG Card|${cardFaceItem.NameText}|1|platinum=1|caption=1}}`);
+          sb.line();
+        }
       }
     }
   }
   if (deckCard && (deckCard.StoryTitleText || deckCard.StoryContextText)) {
-    sb.line('==Story==');
+    sb.line('==Câu Chuyện==');
     sb.line(`{{Description|${await gcg.normGcgText(deckCard.StoryContextText)}|title=${await gcg.normGcgText(deckCard.StoryTitleText)}}}`);
     sb.line();
   }
-  sb.line('==Stage Appearances==');
+  sb.line('==Xuất Hiện Trong Trận==');
   sb.line('{{Genius Invokation TCG Stage Appearances}}');
   sb.line();
   if (isCharacterCard(card) && card.CardFace) {
-    sb.line('==Gallery==');
+    sb.line('==Thư Viện==');
     sb.line('<gallery>');
     sb.line(`${card.WikiName} TCG Avatar Icon.png|Avatar Icon`)
     sb.line('</gallery>');
     sb.line();
-    sb.line('==Animations==');
+    sb.line('==Hoạt Ảnh==');
     sb.line('{{Preview');
     sb.setPropPad(9)
     sb.prop('size', '200px');
@@ -197,7 +203,7 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
     sb.line('}}');
     sb.line();
   }
-  sb.line('==Other Languages==');
+  sb.line('==Ngôn Ngữ Khác==');
   if (isCharacterCard(card)) {
     sb.line(`{{Other Languages|Transclude=${card.WikiName}}}`);
   } else {
@@ -205,7 +211,7 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
   }
   sb.line();
 
-  sb.line('==Change History==');
+  sb.line('==Lịch Sử Cập Nhật==');
   let crRecord: ExcelChangeRef;
   if (isCharacterCard(card)) {
     crRecord = await gcg.ctrl.excelChangelog.selectChangeRefAddedAt(card.Id, 'GCGCharExcelConfigData');
@@ -214,10 +220,10 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
   } else {
     crRecord = null;
   }
-  sb.line('{{Change History|' + (crRecord?.version?.label || '<!-- version -->') + '}}');
+  sb.line('{{Change History|' + (crRecord?.version?.label || '<!-- phiên bản -->') + '}}');
   sb.line();
 
-  sb.line('==Navigation==');
+  sb.line('==Điều Hướng==');
   if (isCharacterCard(card)) {
     sb.line(`{{Genius Invokation TCG Navbox|${card.WikiType} ${card.IsCanObtain ? 'Obtainable' : 'Unobtainable'}}}`);
   } else {
@@ -247,8 +253,8 @@ export async function generateStageTemplate(control: GCGControl, stage: GCGGameE
       const objectiveText = stage.Reward.ObjectiveTextList[index];
       const reward = stage.Reward.ChallengeRewardList[index];
 
-      sb.prop('objective_' + (index+1), objectiveText);
-      sb.prop('reward_' + (index+1), reward?.Reward?.RewardSummary?.CombinedStringsNoLocale);
+      sb.prop('objective_' + (index + 1), objectiveText);
+      sb.prop('reward_' + (index + 1), reward?.Reward?.RewardSummary?.CombinedStringsNoLocale);
     }
   }
 

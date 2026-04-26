@@ -162,7 +162,7 @@ If you don't want to use SSL locally, you can use these settings:
        
 You'll need to repeat this step after every new Genshin Impact version.
 
-It's recommended you install `ts-node` globally with `npm install -g ts-node`
+It's recommended you install `npx tsx` globally with `npm install -g npx tsx`
 
 1.  **Obtain data folders for GI/HSR/ZZZ**
    
@@ -181,9 +181,9 @@ It's recommended you install `ts-node` globally with `npm install -g ts-node`
 
 2.  **Import files (normalize)**
     
-    * Run with: `ts-node ./src/backend/importer/genshin/import_genshin_files.ts --normalize`
-    * Run with: `ts-node ./src/backend/importer/hsr/import_hsr_files.ts --normalize`
-    * Run with: `ts-node ./src/backend/importer/zenless/import_zenless_files.ts --normalize`
+    * Run with: `npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --normalize`
+    * Run with: `npx tsx ./src/backend/importer/hsr/import_hsr_files.ts --normalize`
+    * Run with: `npx tsx ./src/backend/importer/zenless/import_zenless_files.ts --normalize`
 
 3.  **Import files (plaintext)**
     
@@ -191,20 +191,20 @@ It's recommended you install `ts-node` globally with `npm install -g ts-node`
     this folder with files called `PlainTextMap<LangCode>_Hash.dat` and `PlainTextMap<LangCode>_Text.dat`
     for each language code.<br><br>
     
-    * Run with: `ts-node ./src/backend/importer/genshin/import_genshin_files.ts --plaintext`.
-    * Run with: `ts-node ./src/backend/importer/hsr/import_hsr_files.ts --plaintext`
-    * Run with: `ts-node ./src/backend/importer/zenless/import_zenless_files.ts --plaintext`
+    * Run with: `npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --plaintext`.
+    * Run with: `npx tsx ./src/backend/importer/hsr/import_hsr_files.ts --plaintext`
+    * Run with: `npx tsx ./src/backend/importer/zenless/import_zenless_files.ts --plaintext`
 
 4.  **Import files (voice) [genshin only]**
     
     This will create or overwrite a file called `VoiceItems.json` in
     your `GENSHIN_DATA_ROOT` folder.<br><br>
     
-    * Run with: `ts-node ./src/backend/importer/genshin/import_genshin_files.ts --voice-items`.
+    * Run with: `npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --voice-items`.
 
 5.  **Run import_db for each game**
    
-    * Run with: `ts-node ./src/backend/importer/import_db.ts`.
+    * Run with: `npx tsx ./src/backend/importer/import_db.ts`.
         * Use the `--help` flag to see all the options
         * Use the `--game` flag with one of these values: `genshin`, `hsr`, `zenless`
         * You can use `--run-all` to first time you run it
@@ -214,9 +214,9 @@ It's recommended you install `ts-node` globally with `npm install -g ts-node`
     
     There are various other files to import after importing the database.
     
-    * `ts-node ./src/backend/importer/genshin/import_genshin_files.ts --index`
-    * `ts-node ./src/backend/importer/genshin/import_genshin_files.ts --gcg-skill`
-    * `ts-node ./src/backend/importer/genshin/import_genshin_files.ts --voice-overs`
+    * `npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --index`
+    * `npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --gcg-skill`
+    * `npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --voice-overs`
     
 ## Development
 

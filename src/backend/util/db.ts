@@ -1,4 +1,4 @@
-import  knex, { Knex } from 'knex';
+import knex, { Knex } from 'knex';
 import exitHook from 'async-exit-hook';
 import { logInit, logShutdown } from './logger.ts';
 import { toInt } from '../../shared/util/numberUtil.ts';
@@ -17,22 +17,22 @@ let singleton: SaccharoseDb = null;
 let pgSingleton: Knex = null;
 
 export const pgSessionPool = new Pool({
-  host:     ENV.POSTGRES_SITE_HOST,
+  host: ENV.POSTGRES_SITE_HOST,
   database: ENV.POSTGRES_SITE_DATABASE,
-  user:     ENV.POSTGRES_SITE_USER,
+  user: ENV.POSTGRES_SITE_USER,
   password: ENV.POSTGRES_SITE_PASSWORD,
-  port:     toInt(ENV.POSTGRES_SITE_PORT, 5432),
+  port: toInt(ENV.POSTGRES_SITE_PORT, 5432),
 });
 
 function pgSiteDatabase() {
   return knex({
     client: 'pg',
     connection: {
-      host:     ENV.POSTGRES_SITE_HOST,
+      host: ENV.POSTGRES_SITE_HOST,
       database: ENV.POSTGRES_SITE_DATABASE,
-      user:     ENV.POSTGRES_SITE_USER,
+      user: ENV.POSTGRES_SITE_USER,
       password: ENV.POSTGRES_SITE_PASSWORD,
-      port:     toInt(ENV.POSTGRES_SITE_PORT, 5432),
+      port: toInt(ENV.POSTGRES_SITE_PORT, 5432),
     },
     pool: {
       max: 100,
@@ -48,11 +48,11 @@ function pgGamedataDatabase(db: string) {
   return knex({
     client: 'pg',
     connection: {
-      host:     ENV.POSTGRES_GAMEDATA_HOST,
+      host: ENV.POSTGRES_SITE_HOST,
       database: db,
-      user:     ENV.POSTGRES_GAMEDATA_USER,
-      password: ENV.POSTGRES_GAMEDATA_PASSWORD,
-      port:     toInt(ENV.POSTGRES_GAMEDATA_PORT, 5432),
+      user: ENV.POSTGRES_SITE_USER,
+      password: ENV.POSTGRES_SITE_PASSWORD,
+      port: toInt(ENV.POSTGRES_GAMEDATA_PORT, 5432),
     },
     pool: {
       max: 30,
@@ -66,10 +66,10 @@ export function openPgGamedata(): SaccharoseDb {
     return singleton;
   }
   singleton = {
-    genshin:  isSiteModeDisabled('genshin') ? null  : pgGamedataDatabase(ENV.POSTGRES_GAMEDATA_DATABASE_GENSHIN),
-    hsr:      isSiteModeDisabled('hsr') ? null      : pgGamedataDatabase(ENV.POSTGRES_GAMEDATA_DATABASE_HSR),
-    zenless:  isSiteModeDisabled('zenless') ? null  : pgGamedataDatabase(ENV.POSTGRES_GAMEDATA_DATABASE_ZENLESS),
-    wuwa:     isSiteModeDisabled('wuwa') ? null     : pgGamedataDatabase(ENV.POSTGRES_GAMEDATA_DATABASE_WUWA),
+    genshin: isSiteModeDisabled('genshin') ? null : pgGamedataDatabase(ENV.POSTGRES_GAMEDATA_DATABASE_GENSHIN),
+    hsr: isSiteModeDisabled('hsr') ? null : pgGamedataDatabase(ENV.POSTGRES_GAMEDATA_DATABASE_HSR),
+    zenless: isSiteModeDisabled('zenless') ? null : pgGamedataDatabase(ENV.POSTGRES_GAMEDATA_DATABASE_ZENLESS),
+    wuwa: isSiteModeDisabled('wuwa') ? null : pgGamedataDatabase(ENV.POSTGRES_GAMEDATA_DATABASE_WUWA),
   };
   return singleton;
 }
@@ -86,7 +86,7 @@ export async function closeKnex(): Promise<boolean> {
   const destroyPromises: Promise<void>[] = [];
 
   if (singleton) {
-    destroyPromises.push(... Object.values(singleton)
+    destroyPromises.push(...Object.values(singleton)
       .filter(knex => !!knex)
       .map(knex => knex.destroy()));
   }
