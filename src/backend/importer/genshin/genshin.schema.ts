@@ -1537,14 +1537,18 @@ export const genshinSchema = {
     ],
     customRowResolve: (row: CompoundExcelConfigData) => {
       let ret: MaterialRelation[] = [];
-      for (let item of row.InputVec) {
-        if (item.Id) {
-          ret.push({ RelationId: row.Id, RoleId: item.Id, RoleType: 'input' });
+      if (row.InputVec) {
+        for (let item of row.InputVec) {
+          if (item.Id) {
+            ret.push({ RelationId: row.Id, RoleId: item.Id, RoleType: 'input' });
+          }
         }
       }
-      for (let item of row.OutputVec) {
-        if (item.Id) {
-          ret.push({ RelationId: row.Id, RoleId: item.Id, RoleType: 'output' });
+      if (row.OutputVec) {
+        for (let item of row.OutputVec) {
+          if (item.Id) {
+            ret.push({ RelationId: row.Id, RoleId: item.Id, RoleType: 'output' });
+          }
         }
       }
       return ret;
@@ -1583,14 +1587,18 @@ export const genshinSchema = {
     ],
     customRowResolve: (row: CookRecipeExcelConfigData) => {
       let ret: MaterialRelation[] = [];
-      for (let item of row.InputVec) {
-        if (item.Id) {
-          ret.push({ RelationId: row.Id, RoleId: item.Id, RoleType: 'input' });
+      if (row.InputVec) {
+        for (let item of row.InputVec) {
+          if (item.Id) {
+            ret.push({ RelationId: row.Id, RoleId: item.Id, RoleType: 'input' });
+          }
         }
       }
-      for (let item of row.QualityOutputVec) {
-        if (item.Id) {
-          ret.push({ RelationId: row.Id, RoleId: item.Id, RoleType: 'output' });
+      if (row.QualityOutputVec) {
+        for (let item of row.QualityOutputVec) {
+          if (item.Id) {
+            ret.push({ RelationId: row.Id, RoleId: item.Id, RoleType: 'output' });
+          }
         }
       }
       return ret;

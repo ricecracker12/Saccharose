@@ -61,8 +61,10 @@ export async function Relation_CookBonusExcelConfigData_resolver(row: CookBonusE
   }
 
   const cookRecipe: CookRecipeExcelConfigData = (<CookRecipeExcelConfigData[]> acc.cookRecipes).find(r => r.Id === row.RecipeId);
-  for (let vecItem of cookRecipe.QualityOutputVec) {
-    ret.push({ RelationId: row.RecipeId, RoleId: vecItem.Id, RoleType: 'substitute' });
+  if (cookRecipe && cookRecipe.QualityOutputVec) {
+    for (let vecItem of cookRecipe.QualityOutputVec) {
+      ret.push({ RelationId: row.RecipeId, RoleId: vecItem.Id, RoleType: 'substitute' });
+    }
   }
 
   return ret;
