@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 export const BAD_PATH_REGEX: RegExp = /\/wp-|\baws\b|\.env|cgi-|\.php|php\b|\bphp|\.git|\.asp|\.cgi|\.axd|\.bak|\.html|geoserver|boaform|reportserver|(health|web)[_\-]?check|telescope|\bjira\b|microsoft/i;
 export const BAD_URI_REGEX: RegExp = /:80\/|:443\//g;
-export const VALID_HOSTS: Set<string> = new Set(['saccharose.wiki', 'www.saccharose.wiki', 'saccharose.localhost', 'nickjr.wiki', 'www.nickjr.wiki', 'banhgao.net', 'sucrose.banhgao.net']);
+export const VALID_HOSTS: Set<string> = new Set(['saccharose.wiki', 'www.saccharose.wiki', 'saccharose.localhost', 'nickjr.wiki', 'www.nickjr.wiki', '127.0.0.1:3001', 'localhost:3001', 'sucrose.banhgao.net']);
 export const ANNOYANCE_404: RegExp = /\/.well-known/;
 
 export default (req: Request, res: Response, next: NextFunction) => {
