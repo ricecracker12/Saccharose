@@ -539,8 +539,8 @@ export class GCGControl {
       }
     }
     if (!disableLoad.disableWikiTitleLoad) {
-      stage.WikiCharacter = stage.OppoPlayerNameText || '(No character)';
-      stage.WikiLevelName = stage?.Reward?.LevelNameText || '(No title)';
+      stage.WikiCharacter = stage.OppoPlayerNameText || '(Không có nhân vật)';
+      stage.WikiLevelName = stage?.Reward?.LevelNameText || '(Không có tiêu đề)';
       stage.WikiCombinedTitle = `${stage.WikiCharacter}/${stage.WikiLevelName}`;
     }
     if (!disableLoad.disableWikiTypeGroupLoad) {
@@ -548,37 +548,37 @@ export class GCGControl {
       stage.WikiType = null;
       switch (stage.LevelType) {
         case 'BOSS':
-          stage.WikiGroup = 'Tavern Challenge';
+          stage.WikiGroup = 'Khiêu Chiến Quán Rượu';
           break;
         case 'QUEST':
-          stage.WikiGroup = 'Quest';
+          stage.WikiGroup = 'Nhiệm Vụ';
           break;
         case 'WORLD':
-          stage.WikiGroup = 'Open World Match';
+          stage.WikiGroup = 'Khiêu Chiến Đại Thế Giới';
           if (stage?.Reward?.LevelNameText) {
             let levelNameTextEn = await this.ctrl.getTextMapItem('EN', stage.Reward.LevelNameTextMapHash);
             if (levelNameTextEn.startsWith('Duel:')) {
-              stage.WikiType = 'Duel';
+              stage.WikiType = 'Quyết Đấu';
             } else {
-              stage.WikiType = 'Adventure Challenge';
+              stage.WikiType = 'Khiêu Chiến Khám Phá';
             }
           }
           break;
         case 'WEEK':
-          stage.WikiType = 'Weekly Guest Challenge';
+          stage.WikiType = 'Khiêu Chiến Khách Mỗi Tuần';
           break;
         case 'CHARACTER':
-          stage.WikiGroup = 'Invitation Board';
+          stage.WikiGroup = 'Bảng Mời Quyết Đấu';
           break;
         case 'OTHER':
           break;
       }
       if (stage.LevelLock) {
-        stage.WikiType = 'Ascension Challenge';
+        stage.WikiType = 'Khiêu Chiến Đột Phá';
       }
       if (stage.LevelDifficulty) {
         // Only 'BOSS' and 'CHARACTER' games have level difficulty
-        stage.WikiType = stage.LevelDifficulty === 'NORMAL' ? 'Friendly Fracas' : 'Serious Showdown';
+        stage.WikiType = stage.LevelDifficulty === 'NORMAL' ? 'Đánh Giải Trí' : 'Đánh Nghiêm Túc';
       }
     }
     if (stage.Reward && stage.Reward.CondList) {

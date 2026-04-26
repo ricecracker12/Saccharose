@@ -36,8 +36,8 @@ export async function generateSkillPage(gcg: GCGControl, parentCard: GCGCommonCa
   sb.prop('effect', skill.WikiDesc);
   sb.prop('order', index + 1);
   sb.line('}}');
-  sb.line(`'''${skill.WikiName}''' là một [[${parentCard.WikiType} ${skill.WikiType}|${skill.WikiType}]] ` +
-    `thuộc [[${parentCard.WikiName} (${parentCard.WikiType})|${parentCard.WikiName}]] trong [[Thất Thánh Triệu Hồi]].`);
+  sb.line(`'''${skill.WikiName}''' là [[${parentCard.WikiType} ${skill.WikiType}|${skill.WikiType}]] của ` +
+    `[[${parentCard.WikiName} (${parentCard.WikiType})|${parentCard.WikiName}]] trong [[Thất Thánh Triệu Hồi]].`);
   sb.line();
 
   sb.line('==Ngôn Ngữ Khác==');
@@ -147,7 +147,7 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
       const relatedCharName = deckCard?.RelatedCharacter?.WikiName;
       addendum += `dành cho [[${relatedCharName} (Thẻ Nhân Vật)|${relatedCharName}]]`;
     }
-    sb.line(`'''${card.WikiName}''' là một [[${card.WikiType}]]${preType}${addendum} trong [[Thất Thánh Triệu Hồi]].`);
+    sb.line(`'''${card.WikiName}''' là một [[${card.WikiType}]] ` + `${preType}${addendum} trong [[Thất Thánh Triệu Hồi]].`);
   }
   sb.line();
 

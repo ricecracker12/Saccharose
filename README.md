@@ -235,7 +235,7 @@ automatically reload  the code as you're developing. This is much faster than ru
 `npm run build:dev` and `npm run start` every time you make a code change.
 
  * Run `npm run ts-serve:dev` to start the backend with live-reloading.
- * Run `npm run webpack:dev-watch` to start the frontend with live-reloading.
+ * Run `npm run rspack:dev-watch` to start the frontend with live-reloading.
 
 It doesn't matter which order you run those two commands in.
 

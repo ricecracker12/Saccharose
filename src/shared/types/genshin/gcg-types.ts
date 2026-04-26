@@ -93,12 +93,12 @@ export interface GCGElementReactionExcelConfigData {
   Id: number,
   ElementType1: 'GCG_ELEMENT_CRYO' | 'GCG_ELEMENT_ELECTRO' | 'GCG_ELEMENT_HYDRO' | 'GCG_ELEMENT_PYRO',
   ElementType2:
-    'GCG_ELEMENT_ANEMO' |
-    'GCG_ELEMENT_CRYO'  |
-    'GCG_ELEMENT_DENDRO'|
-    'GCG_ELEMENT_GEO'   |
-    'GCG_ELEMENT_HYDRO' |
-    'GCG_ELEMENT_PYRO'  ,
+  'GCG_ELEMENT_ANEMO' |
+  'GCG_ELEMENT_CRYO' |
+  'GCG_ELEMENT_DENDRO' |
+  'GCG_ELEMENT_GEO' |
+  'GCG_ELEMENT_HYDRO' |
+  'GCG_ELEMENT_PYRO',
   SkillId: number,
   MappedSkill: GCGSkillExcelConfigData,
 }
@@ -159,65 +159,65 @@ export interface GCGCharSkillDamage {
 
 export type GCGTagType =
   // General Tags
-  'GCG_TAG_ALLY'              |
-  'GCG_TAG_ARTIFACT'          |
-  'GCG_TAG_DENDRO_PRODUCE'    |
-  'GCG_TAG_FOOD'              |
-  'GCG_TAG_FORBIDDEN_ATTACK'  |
-  'GCG_TAG_IMMUNE_CONTROL'    |
-  'GCG_TAG_IMMUNE_FREEZING'   |
-  'GCG_TAG_ITEM'              |
-  'GCG_TAG_PLACE'             |
-  'GCG_TAG_RESONANCE'         |
-  'GCG_TAG_SHEILD'            |
-  'GCG_TAG_SLOWLY'            |
-  'GCG_TAG_TALENT'            |
-  'GCG_TAG_UNIQUE'            |
-  'GCG_TAG_ARKHE_PNEUMA'      |
-  'GCG_TAG_ARKHE_OUSIA'       |
+  'GCG_TAG_ALLY' |
+  'GCG_TAG_ARTIFACT' |
+  'GCG_TAG_DENDRO_PRODUCE' |
+  'GCG_TAG_FOOD' |
+  'GCG_TAG_FORBIDDEN_ATTACK' |
+  'GCG_TAG_IMMUNE_CONTROL' |
+  'GCG_TAG_IMMUNE_FREEZING' |
+  'GCG_TAG_ITEM' |
+  'GCG_TAG_PLACE' |
+  'GCG_TAG_RESONANCE' |
+  'GCG_TAG_SHEILD' |
+  'GCG_TAG_SLOWLY' |
+  'GCG_TAG_TALENT' |
+  'GCG_TAG_UNIQUE' |
+  'GCG_TAG_ARKHE_PNEUMA' |
+  'GCG_TAG_ARKHE_OUSIA' |
 
   // Elements
-  'GCG_TAG_ELEMENT_ANEMO'     |
-  'GCG_TAG_ELEMENT_CRYO'      |
-  'GCG_TAG_ELEMENT_DENDRO'    |
-  'GCG_TAG_ELEMENT_ELECTRO'   |
-  'GCG_TAG_ELEMENT_GEO'       |
-  'GCG_TAG_ELEMENT_HYDRO'     |
-  'GCG_TAG_ELEMENT_NONE'      |
-  'GCG_TAG_ELEMENT_PYRO'      |
+  'GCG_TAG_ELEMENT_ANEMO' |
+  'GCG_TAG_ELEMENT_CRYO' |
+  'GCG_TAG_ELEMENT_DENDRO' |
+  'GCG_TAG_ELEMENT_ELECTRO' |
+  'GCG_TAG_ELEMENT_GEO' |
+  'GCG_TAG_ELEMENT_HYDRO' |
+  'GCG_TAG_ELEMENT_NONE' |
+  'GCG_TAG_ELEMENT_PYRO' |
 
   // Nations/Camps
-  'GCG_TAG_NATION_FONTAINE'   |
-  'GCG_TAG_NATION_INAZUMA'    |
-  'GCG_TAG_NATION_KHAENRIAH'  |
-  'GCG_TAG_NATION_LIYUE'      |
-  'GCG_TAG_NATION_MONDSTADT'  |
-  'GCG_TAG_NATION_NATLAN'     |
-  'GCG_TAG_NATION_SNEZHNAYA'  |
-  'GCG_TAG_NATION_SUMERU'     |
-  'GCG_TAG_CAMP_FATUI'        |
-  'GCG_TAG_CAMP_HILICHURL'    |
-  'GCG_TAG_CAMP_KAIRAGI'      |
-  'GCG_TAG_CAMP_MONSTER'      |
-  'GCG_TAG_CAMP_EREMITE'      |
+  'GCG_TAG_NATION_FONTAINE' |
+  'GCG_TAG_NATION_INAZUMA' |
+  'GCG_TAG_NATION_KHAENRIAH' |
+  'GCG_TAG_NATION_LIYUE' |
+  'GCG_TAG_NATION_MONDSTADT' |
+  'GCG_TAG_NATION_NATLAN' |
+  'GCG_TAG_NATION_SNEZHNAYA' |
+  'GCG_TAG_NATION_SUMERU' |
+  'GCG_TAG_CAMP_FATUI' |
+  'GCG_TAG_CAMP_HILICHURL' |
+  'GCG_TAG_CAMP_KAIRAGI' |
+  'GCG_TAG_CAMP_MONSTER' |
+  'GCG_TAG_CAMP_EREMITE' |
 
   // Weapons
-  'GCG_TAG_WEAPON'            |
-  'GCG_TAG_WEAPON_BOW'        |
-  'GCG_TAG_WEAPON_CATALYST'   |
-  'GCG_TAG_WEAPON_CLAYMORE'   |
-  'GCG_TAG_WEAPON_NONE'       |
-  'GCG_TAG_WEAPON_POLE'       |
-  'GCG_TAG_WEAPON_SWORD'      ;
+  'GCG_TAG_WEAPON' |
+  'GCG_TAG_WEAPON_BOW' |
+  'GCG_TAG_WEAPON_CATALYST' |
+  'GCG_TAG_WEAPON_CLAYMORE' |
+  'GCG_TAG_WEAPON_NONE' |
+  'GCG_TAG_WEAPON_POLE' |
+  'GCG_TAG_WEAPON_SWORD';
 
 export type GCGTagCategoryType =
   'GCG_TAG_IDENTIFIER_ASSIST' | // support cards
-  'GCG_TAG_IDENTIFIER_CHAR'   | // char camp
-  'GCG_TAG_IDENTIFIER_ELEMENT'| // char element
-  'GCG_TAG_IDENTIFIER_EVENT'  | // event cards
+  'GCG_TAG_IDENTIFIER_CHAR' | // char camp
+  'GCG_TAG_IDENTIFIER_ELEMENT' | // char element
+  'GCG_TAG_IDENTIFIER_EVENT' | // event cards
   'GCG_TAG_IDENTIFIER_MODIFY' | // equipment cards
-  'GCG_TAG_IDENTIFIER_NONE'   |
-  'GCG_TAG_IDENTIFIER_WEAPON' ; // char weapon
+  'GCG_TAG_IDENTIFIER_NONE' |
+  'GCG_TAG_IDENTIFIER_WEAPON'; // char weapon
 
 export interface GCGTagExcelConfigData {
   Type: GCGTagType,
@@ -289,8 +289,8 @@ export type GCGTagCampType = Subset<GCGTagType,
 // GCG GAME / LEVEL
 // --------------------------------------------------------------------------------------------------------------
 
-export type GCGGameWikiType = 'No Type' | 'Adventure Challenge' | 'Duel' | 'Friendly Fracas' | 'Serious Showdown' | 'Weekly Guest Challenge' | 'Ascension Challenge';
-export type GCGGameWikiGroup = 'No Group' | 'Open World Match' | 'Tavern Challenge' | 'Invitation Board' | 'Quest' | 'Event' | 'Special';
+export type GCGGameWikiType = 'Không Có Loại' | 'Khiêu Chiến Khám Phá' | 'Quyết Đấu' | 'Đánh Giải Trí' | 'Đánh Nghiêm Túc' | 'Khiêu Chiến Khách Mỗi Tuần' | 'Khiêu Chiến Đột Phá';
+export type GCGGameWikiGroup = 'Không Có Nhóm' | 'Khiêu Chiến Đại Thế Giới' | 'Khiêu Chiến Quán Rượu' | 'Bảng Mời Quyết Đấu' | 'Nhiệm Vụ' | 'Sự Kiện' | 'Đặc Biệt';
 
 export interface GCGGameExcelConfigData {
   Id: number,
@@ -514,33 +514,33 @@ export interface GCGGameRewardExcelConfigData {
 // --------------------------------------------------------------------------------------------------------------
 
 export type GCGChallengeType =
-  'GCG_CHALLENGE_BEING_HEAL_SUM'                      |
-  'GCG_CHALLENGE_DEAD_CHARACTER_NUM'                  |
-  'GCG_CHALLENGE_ELEMENT_REACTION_TIMES'              |
-  'GCG_CHALLENGE_ONE_HIT_DAMAGE_TIMES'                |
-  'GCG_CHALLENGE_ONE_OPERATION_DAMAGE_SUM_TIMES'      |
-  'GCG_CHALLENGE_ONE_OPERATION_KILL_COUNT_TIMES'      |
-  'GCG_CHALLENGE_PLAY_CARD_TIMES'                     |
-  'GCG_CHALLENGE_PLAY_CARD_WITH_TAG_AND_TYPE_TIMES'   |
-  'GCG_CHALLENGE_ROUND_NUM'                           |
-  'GCG_CHALLENGE_SETTLE_WITH_SKILL_TAG_Q_TIMES'       |
-  'GCG_CHALLENGE_SHIELD_REDUCE_SUM'                   |
-  'GCG_CHALLENGE_SKILL_TAG_Q_TIMES'                   |
-  'GCG_CHALLENGE_SUMMON_TIMES'                        |
-  'GCG_CHALLENGE_WIN'                                 ;
+  'GCG_CHALLENGE_BEING_HEAL_SUM' |
+  'GCG_CHALLENGE_DEAD_CHARACTER_NUM' |
+  'GCG_CHALLENGE_ELEMENT_REACTION_TIMES' |
+  'GCG_CHALLENGE_ONE_HIT_DAMAGE_TIMES' |
+  'GCG_CHALLENGE_ONE_OPERATION_DAMAGE_SUM_TIMES' |
+  'GCG_CHALLENGE_ONE_OPERATION_KILL_COUNT_TIMES' |
+  'GCG_CHALLENGE_PLAY_CARD_TIMES' |
+  'GCG_CHALLENGE_PLAY_CARD_WITH_TAG_AND_TYPE_TIMES' |
+  'GCG_CHALLENGE_ROUND_NUM' |
+  'GCG_CHALLENGE_SETTLE_WITH_SKILL_TAG_Q_TIMES' |
+  'GCG_CHALLENGE_SHIELD_REDUCE_SUM' |
+  'GCG_CHALLENGE_SKILL_TAG_Q_TIMES' |
+  'GCG_CHALLENGE_SUMMON_TIMES' |
+  'GCG_CHALLENGE_WIN';
 
 export type GCGChallengeParam =
-  ''                  |
-  '2'                 |
-  '3'                 |
-  '8'                 |
-  'GCG_CARD_ASSIST'   |
-  'GCG_CARD_EVENT'    |
-  'GCG_CARD_MODIFY'   |
-  'GCG_TAG_ARTIFACT'  |
-  'GCG_TAG_FOOD'      |
-  'GCG_TAG_PLACE'     |
-  'GCG_TAG_WEAPON'    ;
+  '' |
+  '2' |
+  '3' |
+  '8' |
+  'GCG_CARD_ASSIST' |
+  'GCG_CARD_EVENT' |
+  'GCG_CARD_MODIFY' |
+  'GCG_TAG_ARTIFACT' |
+  'GCG_TAG_FOOD' |
+  'GCG_TAG_PLACE' |
+  'GCG_TAG_WEAPON';
 
 export interface GCGChallengeExcelConfigData {
   Id: number,
@@ -554,48 +554,48 @@ export interface GCGChallengeExcelConfigData {
 // GCG CARD TYPES
 // --------------------------------------------------------------------------------------------------------------
 export type GCGCostType =
-  'GCG_COST_DICE_ANEMO'   |
-  'GCG_COST_DICE_CRYO'    |
-  'GCG_COST_DICE_DENDRO'  |
+  'GCG_COST_DICE_ANEMO' |
+  'GCG_COST_DICE_CRYO' |
+  'GCG_COST_DICE_DENDRO' |
   'GCG_COST_DICE_ELECTRO' |
-  'GCG_COST_DICE_GEO'     |
-  'GCG_COST_DICE_HYDRO'   |
-  'GCG_COST_DICE_PYRO'    |
-  'GCG_COST_DICE_SAME'    |
-  'GCG_COST_DICE_VOID'    |
-  'GCG_COST_ENERGY'       |
+  'GCG_COST_DICE_GEO' |
+  'GCG_COST_DICE_HYDRO' |
+  'GCG_COST_DICE_PYRO' |
+  'GCG_COST_DICE_SAME' |
+  'GCG_COST_DICE_VOID' |
+  'GCG_COST_ENERGY' |
   'GCG_COST_INVALID';
 export type GCGCardElementHintType =
-  'GCG_HINT_ANEMO'    |
-  'GCG_HINT_CRYO'     |
-  'GCG_HINT_DENDRO'   |
-  'GCG_HINT_ELECTRO'  |
-  'GCG_HINT_HEAL'     |
-  'GCG_HINT_HYDRO'    |
-  'GCG_HINT_PYRO'     |
-  'GCG_HINT_VOID'     ;
+  'GCG_HINT_ANEMO' |
+  'GCG_HINT_CRYO' |
+  'GCG_HINT_DENDRO' |
+  'GCG_HINT_ELECTRO' |
+  'GCG_HINT_HEAL' |
+  'GCG_HINT_HYDRO' |
+  'GCG_HINT_PYRO' |
+  'GCG_HINT_VOID';
 export type GCGCardPersistEffectType =
-  'GCG_PERSIST_EFFECT_EXPECTO_PATRONUM'   |
-  'GCG_PERSIST_EFFECT_IMPERTURBABLE_CHARM'|
-  'GCG_PERSIST_EFFECT_PROTEGO'            |
-  'GCG_PERSIST_EFFECT_STUPEFY'            ;
+  'GCG_PERSIST_EFFECT_EXPECTO_PATRONUM' |
+  'GCG_PERSIST_EFFECT_IMPERTURBABLE_CHARM' |
+  'GCG_PERSIST_EFFECT_PROTEGO' |
+  'GCG_PERSIST_EFFECT_STUPEFY';
 export type GCGCardStateBuffType =
-  'GCG_STATE_BUFF_ANEMO'      |
-  'GCG_STATE_BUFF_CRYO'       |
-  'GCG_STATE_BUFF_ELECTRO'    |
-  'GCG_STATE_BUFF_GEO'        |
-  'GCG_STATE_BUFF_HYDRO'      |
-  'GCG_STATE_BUFF_NEGATIVE'   |
-  'GCG_STATE_BUFF_PYRO'       ;
+  'GCG_STATE_BUFF_ANEMO' |
+  'GCG_STATE_BUFF_CRYO' |
+  'GCG_STATE_BUFF_ELECTRO' |
+  'GCG_STATE_BUFF_GEO' |
+  'GCG_STATE_BUFF_HYDRO' |
+  'GCG_STATE_BUFF_NEGATIVE' |
+  'GCG_STATE_BUFF_PYRO';
 export type GCGChooseTargetType = 'GCG_CHOOSE_ARTIFACT_MOVE' | 'GCG_CHOOSE_WEAPON_MOVE';
 export type GCGCardType =
-  'GCG_CARD_ASSIST'    | // Support cards
-  'GCG_CARD_EVENT'     | // Event cards
-  'GCG_CARD_MODIFY'    | // Equipment cards
-  'GCG_CARD_ONSTAGE'   |
-  'GCG_CARD_STATE'     |
-  'GCG_CARD_SUMMON'    |
-  'GCG_CARD_CHARACTER' ; // Only for GCGCharExcelConfigData
+  'GCG_CARD_ASSIST' | // Support cards
+  'GCG_CARD_EVENT' | // Event cards
+  'GCG_CARD_MODIFY' | // Equipment cards
+  'GCG_CARD_ONSTAGE' |
+  'GCG_CARD_STATE' |
+  'GCG_CARD_SUMMON' |
+  'GCG_CARD_CHARACTER'; // Only for GCGCharExcelConfigData
 
 export interface GCGTokenDescConfigData {
   Id: number,
@@ -689,34 +689,34 @@ export interface GCGCardExcelConfigData extends GCGCommonCard {
   DOKABCHGHHO?: 4,
   NJDEBIACCGJ: number,
   APGBHOCBDBF: (
-    'Card_111041'   |
-    'Card_111042'   |
-    'Card_114041'   |
+    'Card_111041' |
+    'Card_111042' |
+    'Card_114041' |
     'Card_114041_2' |
-    'Card_126012'   |
-    'Card_422005'   |
+    'Card_126012' |
+    'Card_422005' |
     'Card_422005_2' |
     'Card_422005_3' |
-    'Enchant_Elec'  |
-    'Enchant_Fire'  |
-    'Enchant_Ice'   |
-    'Enchant_Rock'  |
-    'Weapon_1'      |
-    'Weapon_1_A'    |
-    'Weapon_1_A_Sky'|
-    'Weapon_2'      |
-    'Weapon_2_A'    |
-    'Weapon_3_Q'    )[],
+    'Enchant_Elec' |
+    'Enchant_Fire' |
+    'Enchant_Ice' |
+    'Enchant_Rock' |
+    'Weapon_1' |
+    'Weapon_1_A' |
+    'Weapon_1_A_Sky' |
+    'Weapon_2' |
+    'Weapon_2_A' |
+    'Weapon_3_Q')[],
   TokenToShow?: 'GCG_TOKEN_COUNTER' | 'GCG_TOKEN_LIFE' | 'GCG_TOKEN_ROUND_COUNT' | 'GCG_TOKEN_SHIELD',
   TokenToShowIconType?:
-    'GCG_TOKEN_ICON_BARRIER_SHIELD' |
-    'GCG_TOKEN_ICON_CLOCK'          |
-    'GCG_TOKEN_ICON_HOURGLASS'      |
-    'GCG_TOKEN_ICON_NORMAL_SHIELD'  ,
+  'GCG_TOKEN_ICON_BARRIER_SHIELD' |
+  'GCG_TOKEN_ICON_CLOCK' |
+  'GCG_TOKEN_ICON_HOURGLASS' |
+  'GCG_TOKEN_ICON_NORMAL_SHIELD',
   CMMFEFPMGID?:
-    'GCG_TOKEN_COUNTER' |
-    'GCG_TOKEN_LIFE'    |
-    'GCG_TOKEN_SHIELD'  ,
+  'GCG_TOKEN_COUNTER' |
+  'GCG_TOKEN_LIFE' |
+  'GCG_TOKEN_SHIELD',
 }
 
 export interface GCGCostExcelConfigData {
@@ -726,16 +726,16 @@ export interface GCGCostExcelConfigData {
 }
 
 export type GCGChooseCondType =
-  'ALIVE_CHAR_COUNT'              |
-  'CARD'                          |
-  'CHARACTER_HURT_MIN'            |
-  'HAS_MODIFY_STATE_WITH_TAG'     |
-  'IS_ALIVE_CHARACTER'            |
-  'NOT_HAS_MODIFY_STATE'          |
+  'ALIVE_CHAR_COUNT' |
+  'CARD' |
+  'CHARACTER_HURT_MIN' |
+  'HAS_MODIFY_STATE_WITH_TAG' |
+  'IS_ALIVE_CHARACTER' |
+  'NOT_HAS_MODIFY_STATE' |
   'NOT_HAS_MODIFY_STATE_WITH_TAG' |
-  'ONSTAGE'                       |
-  'SAME_WEAPON_TYPE_CHAR_COUNT'   |
-  'SAME_WEAPON_TYPE_WITH'         ;
+  'ONSTAGE' |
+  'SAME_WEAPON_TYPE_CHAR_COUNT' |
+  'SAME_WEAPON_TYPE_WITH';
 
 export type GCGChooseSortType = 'CHARACTER_ORDER' | 'CREATE_ORDER' | 'HAS_TAG' | 'HP' | 'TOKEN_TO_SHOW';
 
