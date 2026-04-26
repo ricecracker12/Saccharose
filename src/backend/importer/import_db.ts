@@ -42,7 +42,7 @@ let skipTableCreation: boolean = false;
 
 export type SchemaTable = {
   name: string,
-  jsonFile: string,
+  jsonFile: string | string[],
 
   /**
    * How the file is read in (default: `record_array`)
@@ -407,34 +407,37 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 
     async function insertAll(table: SchemaTable) {
       let timeStart = Date.now();
-      console.log('Inserting data for: ' + table.name + ' from: ' + table.jsonFile);
+      console.log('Inserting data for: ' + table.name + ' from: ' + (Array.isArray(table.jsonFile) ? table.jsonFile.join(', ') : table.jsonFile));
       console.log('  Starting at ' + timeConvert(timeStart));
 
       const spinner = ora('Starting...').start();
       spinner.indent = 2;
 
-      const fileContents: string = fs.readFileSync(getDataFilePath(table.jsonFile), {encoding: 'utf8'});
-      let json: any[];
-      let totalRows: number;
+      let json: any[] = [];
+      let totalRows: number = 0;
+      const filePaths = Array.isArray(table.jsonFile) ? table.jsonFile : [table.jsonFile];
 
-      if (table.jsonFileType === 'kv_pairs') {
-        json = Object.entries(JSON.parse(fileContents)).map(([Key, Value]) => ({Key, Value}));
-        totalRows = json.length;
-      } else if (table.jsonFileType === 'line_dat') {
-        let lines: string[] = fileContents.split(/\n/g);
-        json = [];
-
-        for (let i: number = 0; i < lines.length; i++) {
-          json.push({LineNumber: i + 1, LineText: lines[i]});
+      for (let filePath of filePaths) {
+        const fileContents: string = fs.readFileSync(getDataFilePath(filePath), {encoding: 'utf8'});
+        
+        if (table.jsonFileType === 'kv_pairs') {
+          const parsed = Object.entries(JSON.parse(fileContents)).map(([Key, Value]) => ({Key, Value}));
+          json.push(...parsed);
+        } else if (table.jsonFileType === 'line_dat') {
+          let lines: string[] = fileContents.split(/\n/g);
+          const startIndex = json.length;
+          for (let i: number = 0; i < lines.length; i++) {
+            json.push({LineNumber: startIndex + i + 1, LineText: lines[i]});
+          }
+        } else {
+          let parsed = JSON.parse(fileContents);
+          if (!Array.isArray(parsed)) {
+            parsed = Object.values(parsed);
+          }
+          json.push(...parsed);
         }
-        totalRows = json.length;
-      } else {
-        json = JSON.parse(fileContents);
-        if (!Array.isArray(json)) {
-          json = Object.values(json);
-        }
-        totalRows = json.length;
       }
+      totalRows = json.length;
 
       await knex.transaction(async (tx) =>  {
         let batch: any[] = [];

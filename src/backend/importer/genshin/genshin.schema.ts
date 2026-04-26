@@ -109,7 +109,7 @@ export const genshinSchema = {
   },
   TalkExcelConfigData: <SchemaTable> {
     name: 'TalkExcelConfigData',
-    jsonFile: './ExcelBinOutput/TalkExcelConfigData.json',
+    jsonFile: ['./ExcelBinOutput/TalkExcelConfigData_0.json', './ExcelBinOutput/TalkExcelConfigData_1.json'],
     columns: [
       { name: 'Id', type: 'integer', isPrimary: true },
       { name: 'InitDialog', type: 'bigint', isIndex: true },
@@ -139,7 +139,7 @@ export const genshinSchema = {
   },
   Relation_TalkAvatarCond: <SchemaTable> {
     name: 'Relation_TalkAvatarCond',
-    jsonFile: './ExcelBinOutput/TalkExcelConfigData.json',
+    jsonFile: ['./ExcelBinOutput/TalkExcelConfigData_0.json', './ExcelBinOutput/TalkExcelConfigData_1.json'],
     columns: [
       { name: 'AvatarId', type: 'integer', isIndex: true },
       { name: 'TalkId', type: 'integer' },
@@ -150,7 +150,7 @@ export const genshinSchema = {
   },
   Relation_NpcToTalk: <SchemaTable> {
     name: 'Relation_NpcToTalk',
-    jsonFile: './ExcelBinOutput/TalkExcelConfigData.json',
+    jsonFile: ['./ExcelBinOutput/TalkExcelConfigData_0.json', './ExcelBinOutput/TalkExcelConfigData_1.json'],
     columns: [
       { name: 'NpcId', type: 'integer', isIndex: true },
       { name: 'TalkId', type: 'integer' },
@@ -165,7 +165,7 @@ export const genshinSchema = {
   },
   Relation_TalkToNext: <SchemaTable> {
     name: 'Relation_TalkToNext',
-    jsonFile: './ExcelBinOutput/TalkExcelConfigData.json',
+    jsonFile: ['./ExcelBinOutput/TalkExcelConfigData_0.json', './ExcelBinOutput/TalkExcelConfigData_1.json'],
     columns: [
       { name: 'TalkId', type: 'integer', isIndex: true },
       { name: 'NextTalkId', type: 'integer', isIndex: true },
