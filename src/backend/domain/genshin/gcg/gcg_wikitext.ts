@@ -137,9 +137,9 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
 
   if (isCharacterCard(card)) {
     if (card.IsCanObtain) {
-      sb.line(`'''${card.WikiName}''' là một ${preType}[[${card.WikiType}]] obtained trong [[Thất Thánh Triệu Hồi]].`);
+      sb.line(`'''${card.WikiName}''' là một [[${card.WikiType}]]${preType} trong [[Thất Thánh Triệu Hồi]].`);
     } else {
-      sb.line(`'''${card.WikiName}''' is an unobtainable ${preType}[[${card.WikiType}]] trong [[Thất Thánh Triệu Hồi]].`);
+      sb.line(`'''${card.WikiName}''' là một [[${card.WikiType}]]${preType} không thể nhận trong [[Thất Thánh Triệu Hồi]].`);
     }
   } else {
     let addendum = '';
@@ -147,7 +147,7 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
       const relatedCharName = deckCard?.RelatedCharacter?.WikiName;
       addendum += ` dành cho [[${relatedCharName} (Thẻ Nhân Vật)|${relatedCharName}]]`;
     }
-    sb.line(`'''${card.WikiName}''' là một ${preType}[[${card.WikiType}]]${addendum} trong [[Thất Thánh Triệu Hồi]].`);
+    sb.line(`'''${card.WikiName}''' là một [[${card.WikiType}]]${preType}${addendum} trong [[Thất Thánh Triệu Hồi]].`);
   }
   sb.line();
 
@@ -168,12 +168,12 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
         const golden: boolean = cardFaceItem.Icon?.toLowerCase()?.includes('gold') || false;
         const platinum: boolean = cardFaceItem.Icon?.toLowerCase()?.includes('platinum') || false;
         if (golden) {
-          sb.line(`After reaching Proficiency ${prof.Proficiency}, the following Dynamic Skin is obtained:<br>` +
+          sb.line(`Sau khi Độ Thuần Thục đạt cấp ${prof.Proficiency}, người chơi sẽ nhận được Mặt Bài Kỳ Ảo sau:<br>` +
             `{{TCG Card|${cardFaceItem.NameText}|1|golden=1|caption=1}}`);
           sb.line();
         }
         if (platinum) {
-          sb.line(`After reaching Proficiency ${prof.Proficiency}, the following Dynamic Skin is obtained:<br>` +
+          sb.line(`Sau khi Độ Thuần Thục đạt cấp ${prof.Proficiency}, người chơi sẽ nhận được Mặt Bài Lấp Lánh sau:<br>` +
             `{{TCG Card|${cardFaceItem.NameText}|1|platinum=1|caption=1}}`);
           sb.line();
         }
@@ -191,7 +191,7 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
   if (isCharacterCard(card) && card.CardFace) {
     sb.line('==Thư Viện==');
     sb.line('<gallery>');
-    sb.line(`${card.WikiName} TCG Avatar Icon.png|Avatar Icon`)
+    sb.line(`${card.WikiName} TCG Avatar Icon.png|Biểu tượng hình đại diện`)
     sb.line('</gallery>');
     sb.line();
     sb.line('==Hoạt Ảnh==');
@@ -199,7 +199,7 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
     sb.setPropPad(9)
     sb.prop('size', '200px');
     sb.prop('file1', `${card.WikiName} Dynamic Skin`);
-    sb.prop('caption', 'Dynamic Skin Idle Animation');
+    sb.prop('caption', 'Hoạt ảnh nhàn rỗi Mặt Bài Kỳ Ảo');
     sb.line('}}');
     sb.line();
   }
