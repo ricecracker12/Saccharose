@@ -49,16 +49,16 @@ export class GCGControl {
   private didInit: boolean = false;
 
   // Preloaded Data
-  talkDetailIconTable:  {[id: number]: GCGTalkDetailIconExcelConfigData};
-  ruleTable:            {[id: number]: GCGRuleExcelConfigData};
-  challengeTable:       {[id: number]: GCGChallengeExcelConfigData};
-  elementReactionTable: {[id: number]: GCGElementReactionExcelConfigData};
-  worldWorkTimeTable:   {[id: number]: GcgWorldWorkTimeExcelConfigData};
-  costDataTable:        {[type: string]: GCGCostExcelConfigData};
-  charSkillDamageTable: {[name: string]: GCGCharSkillDamage};
-  tagTable:             {[type: string]: GCGTagExcelConfigData};
-  skillTagTable:        {[type: string]: GCGSkillTagExcelConfigData};
-  keywordTable:         {[kwId: number]: GCGKeywordExcelConfigData};
+  talkDetailIconTable: { [id: number]: GCGTalkDetailIconExcelConfigData };
+  ruleTable: { [id: number]: GCGRuleExcelConfigData };
+  challengeTable: { [id: number]: GCGChallengeExcelConfigData };
+  elementReactionTable: { [id: number]: GCGElementReactionExcelConfigData };
+  worldWorkTimeTable: { [id: number]: GcgWorldWorkTimeExcelConfigData };
+  costDataTable: { [type: string]: GCGCostExcelConfigData };
+  charSkillDamageTable: { [name: string]: GCGCharSkillDamage };
+  tagTable: { [type: string]: GCGTagExcelConfigData };
+  skillTagTable: { [type: string]: GCGSkillTagExcelConfigData };
+  keywordTable: { [kwId: number]: GCGKeywordExcelConfigData };
 
   charIcons: string[];
   charIconsLcSet: Set<string> = new Set();
@@ -69,7 +69,7 @@ export class GCGControl {
   disableRelatedCharacterLoad: boolean = false;
   disableVoiceItemsLoad: boolean = false;
 
-  constructor(readonly ctrl: GenshinControl, readonly enableElementalReactionMapping: boolean = false) {}
+  constructor(readonly ctrl: GenshinControl, readonly enableElementalReactionMapping: boolean = false) { }
 
   async init() {
     if (this.didInit) {
@@ -157,15 +157,15 @@ export class GCGControl {
       return text || '';
     }
 
-    text = this.ctrl.normText(text, outputLangCode || this.ctrl.outputLangCode, {skipHtml2Quotes: true});
+    text = this.ctrl.normText(text, outputLangCode || this.ctrl.outputLangCode, { skipHtml2Quotes: true });
 
     text = text.replace(/\$\[K(\d+)(?:\|s(\d+))?]/g, (_fm: string, g: string, _sNumStr: string) => {
       const id = toInt(g);
       const kwText = this.keywordTable[id]?.TitleText;
-      return this.ctrl.normText(kwText, outputLangCode || this.ctrl.outputLangCode, {skipHtml2Quotes: true});
+      return this.ctrl.normText(kwText, outputLangCode || this.ctrl.outputLangCode, { skipHtml2Quotes: true });
     });
 
-    const commonReplace = async (obj: GCGCharExcelConfigData|GCGSkillExcelConfigData|GCGCardExcelConfigData, fm: string, sNumStr: string) => {
+    const commonReplace = async (obj: GCGCharExcelConfigData | GCGSkillExcelConfigData | GCGCardExcelConfigData, fm: string, sNumStr: string) => {
       if (!obj) {
         return fm;
       }
@@ -244,12 +244,12 @@ export class GCGControl {
     return o;
   }
 
-  private async singleSelect<T>(table: string, field: string, value: any, postProcess?: false|((o: T) => Promise<T>)): Promise<T> {
+  private async singleSelect<T>(table: string, field: string, value: any, postProcess?: false | ((o: T) => Promise<T>)): Promise<T> {
     await this.init();
     const schemaTable: SchemaTable = genshinSchema[table];
 
     let record: T = await this.ctrl.knex.select('*').from(table)
-      .where({[field]: value}).first().then(row => {
+      .where({ [field]: value }).first().then(row => {
         return this.ctrl.commonLoadFirst(row, schemaTable);
       });
 
@@ -269,7 +269,7 @@ export class GCGControl {
     return record;
   }
 
-  private async multiSelect<T>(table: string, field: string, value: any|any[], postProcess?: false|((o: T) => Promise<T>)): Promise<T[]> {
+  private async multiSelect<T>(table: string, field: string, value: any | any[], postProcess?: false | ((o: T) => Promise<T>)): Promise<T[]> {
     await this.init();
     const schemaTable: SchemaTable = genshinSchema[table];
 
@@ -597,7 +597,7 @@ export class GCGControl {
 
   private async selectCharacterLevelByLevelId(levelId: number): Promise<GCGCharacterLevelExcelConfigData> {
     let ids: number[] = await this.ctrl.knex.select('*').from('Relation_GCGCharacterLevel')
-      .where({LevelId: levelId}).pluck('Id').then();
+      .where({ LevelId: levelId }).pluck('Id').then();
     if (ids.length) {
       return await this.singleSelect('GCGCharacterLevelExcelConfigData', 'Id', ids[0]);
     }
@@ -605,7 +605,7 @@ export class GCGControl {
   }
 
   async selectAllStage(disableLoad: GCGStageLoadOptions = {}): Promise<GCGGameExcelConfigData[]> {
-    return await this.allSelect('GCGGameExcelConfigData', o => this.postProcessStage(o, Object.assign(<GCGStageLoadOptions> {
+    return await this.allSelect('GCGGameExcelConfigData', o => this.postProcessStage(o, Object.assign(<GCGStageLoadOptions>{
       disableDeckLoad: true,
       disableTalkLoad: true,
     }, disableLoad)));
@@ -613,7 +613,7 @@ export class GCGControl {
 
   async selectStage(id: number, disableLoad: GCGStageLoadOptions = {}): Promise<GCGGameExcelConfigData> {
     return await this.singleSelect('GCGGameExcelConfigData', 'Id', id,
-        o => this.postProcessStage(o, disableLoad));
+      o => this.postProcessStage(o, disableLoad));
   }
 
   async searchStages(searchText: string, searchFlags: string, disableLoad: GCGStageLoadOptions = {}): Promise<GCGGameExcelConfigData[]> {
@@ -642,7 +642,7 @@ export class GCGControl {
     });
 
     return await this.multiSelect('GCGGameExcelConfigData', 'Id', ids,
-        o => this.postProcessStage(o, disableLoad));
+      o => this.postProcessStage(o, disableLoad));
   }
 
   getStageForJson(stage: GCGGameExcelConfigData, unmap: boolean = false): GCGGameExcelConfigData {
@@ -708,7 +708,7 @@ export class GCGControl {
 
   // region GCG Common Card
   // --------------------------------------------------------------------------------------------------------------
-  private async postProcessCommonCard(card: GCGCardExcelConfigData|GCGCharExcelConfigData): Promise<GCGCommonCard> {
+  private async postProcessCommonCard(card: GCGCardExcelConfigData | GCGCharExcelConfigData): Promise<GCGCommonCard> {
     if (card.DeckCard) {
       card.WikiImage = card.DeckCard.ItemMaterial.Icon;
       card.WikiName = await this.normGcgText(card.DeckCard.ItemMaterial.NameText);
@@ -740,15 +740,15 @@ export class GCGControl {
     switch (card.CardType) {
       case 'GCG_CARD_ASSIST':
         card.WikiType = (await this.ctrl.selectManualTextMapConfigDataById('UI_GCG_CARD_TYPE_SUPPORT')).TextMapContentText;
-        card.WikiTypeEN = 'Support';
+        card.WikiTypeEN = 'Support Card';
         break;
       case 'GCG_CARD_EVENT':
         card.WikiType = (await this.ctrl.selectManualTextMapConfigDataById('UI_GCG_CARD_TYPE_EVENT')).TextMapContentText;
-        card.WikiTypeEN = 'Event';
+        card.WikiTypeEN = 'Event Card';
         break;
       case 'GCG_CARD_MODIFY':
         card.WikiType = (await this.ctrl.selectManualTextMapConfigDataById('UI_GCG_CARD_TYPE_EQUIP')).TextMapContentText;
-        card.WikiTypeEN = 'Equipment';
+        card.WikiTypeEN = 'Equipment Card';
         break;
       case 'GCG_CARD_ONSTAGE':
         break;
@@ -760,7 +760,7 @@ export class GCGControl {
         break;
       case 'GCG_CARD_CHARACTER':
         card.WikiType = (await this.ctrl.selectManualTextMapConfigDataById('UI_GCG_CARD_TYPE_CHAR')).TextMapContentText;
-        card.WikiTypeEN = 'Character';
+        card.WikiTypeEN = 'Character Card';
         break;
     }
 
@@ -1026,7 +1026,7 @@ export class GCGControl {
     const seenAlready: Set<string> = new Set();
 
     const extractEffectIds = (desc: string, set: Set<{ type: string, id: number }>) =>
-      desc && [... desc.matchAll(/\$\[([CS])(\d+)]/g)]
+      desc && [...desc.matchAll(/\$\[([CS])(\d+)]/g)]
         .filter(m => !seenAlready.has(m[1] + m[2]))
         .forEach(m => {
           set.add({ type: m[1], id: toInt(m[2]) });
@@ -1159,13 +1159,13 @@ export class GCGControl {
   // --------------------------------------------------------------------------------------------------------------
 
   private pushTalkDetailToStageTalk(stage: GCGGameExcelConfigData,
-                                    title: string,
-                                    talk: GCGTalkExcelConfigData,
-                                    talkDetail: GCGTalkDetailExcelConfigData) {
-    const sect = new DialogueSectionResult('GCGTalk_'+talk.GameId+'_'+talkDetail.TalkDetailIconId, title)
+    title: string,
+    talk: GCGTalkExcelConfigData,
+    talkDetail: GCGTalkDetailExcelConfigData) {
+    const sect = new DialogueSectionResult('GCGTalk_' + talk.GameId + '_' + talkDetail.TalkDetailIconId, title)
       .afterConstruct(sect => {
         sect.addHeaderProp('Stage ID', { value: talk.GameId, tooltip: stage.StageTalk.title },
-          '/genshin/TCG/stages/'+String(talk.GameId).padStart(6, '0'));
+          '/genshin/TCG/stages/' + String(talk.GameId).padStart(6, '0'));
         sect.addHeaderProp('Talk Mode', title);
         sect.addHeaderProp('Icon ID', talkDetail.TalkDetailIconId);
         if (talkDetail?.TalkDetailIcon?.Type === 'NPC') {
@@ -1205,14 +1205,14 @@ export class GCGControl {
   private async populateStageTalk(stage: GCGGameExcelConfigData): Promise<void> {
     const gcgTalk: GCGTalkExcelConfigData = stage.LevelTalk;
 
-    stage.StageTalk = new DialogueSectionResult('GCGStageTalk_'+stage.Id, stage.WikiCombinedTitle).afterConstruct(sect => {
+    stage.StageTalk = new DialogueSectionResult('GCGStageTalk_' + stage.Id, stage.WikiCombinedTitle).afterConstruct(sect => {
       sect.addHeaderProp('Stage ID', { value: stage.Id, tooltip: stage.WikiCombinedTitle },
         '/genshin/TCG/stages/' + String(stage.Id).padStart(6, '0'));
       sect.addHeaderProp('Stage Type', stage.LevelType);
       sect.copyAllSep = '\n\n';
     });
 
-    stage.IdleTalk = new DialogueSectionResult('GCGIdleTalk_'+stage.Id, stage.WikiCombinedTitle);
+    stage.IdleTalk = new DialogueSectionResult('GCGIdleTalk_' + stage.Id, stage.WikiCombinedTitle);
 
     const acc = new TalkConfigAccumulator(this.ctrl);
 
@@ -1264,19 +1264,19 @@ export class GCGControl {
       }
       if (gcgTalk.SadTalk) {
         const sect = this.pushTalkDetailToStageTalk(stage, 'Sad Talk', gcgTalk, gcgTalk.SadTalk);
-        sect.prependFreeForm(`;(${this.ctrl.i18n('TCG_WhenOneEnemyCardDefeated', {name: stage.OppoPlayerNameText})})\n`)
+        sect.prependFreeForm(`;(${this.ctrl.i18n('TCG_WhenOneEnemyCardDefeated', { name: stage.OppoPlayerNameText })})\n`)
       }
       if (gcgTalk.ToughTalk) {
         const sect = this.pushTalkDetailToStageTalk(stage, 'Tough Talk', gcgTalk, gcgTalk.ToughTalk);
-        sect.prependFreeForm(`;(${this.ctrl.i18n('TCG_WhenTwoEnemyCardsDefeated', {name: stage.OppoPlayerNameText})})\n`)
+        sect.prependFreeForm(`;(${this.ctrl.i18n('TCG_WhenTwoEnemyCardsDefeated', { name: stage.OppoPlayerNameText })})\n`)
       }
       if (gcgTalk.HappyTalk) {
         const sect = this.pushTalkDetailToStageTalk(stage, 'Happy Talk', gcgTalk, gcgTalk.HappyTalk);
-        sect.prependFreeForm(`;(${this.ctrl.i18n('TCG_WhenOnePlayerCardDefeated', {name: stage.OppoPlayerNameText})})\n`)
+        sect.prependFreeForm(`;(${this.ctrl.i18n('TCG_WhenOnePlayerCardDefeated', { name: stage.OppoPlayerNameText })})\n`)
       }
       if (gcgTalk.ElementBurstTalk) {
         const sect = this.pushTalkDetailToStageTalk(stage, 'Elemental Burst', gcgTalk, gcgTalk.ElementBurstTalk);
-        sect.prependFreeForm(`;(${this.ctrl.i18n('TCG_WhenEnemyUsesBurst', {name: stage.OppoPlayerNameText})})\n`)
+        sect.prependFreeForm(`;(${this.ctrl.i18n('TCG_WhenEnemyUsesBurst', { name: stage.OppoPlayerNameText })})\n`)
       }
     }
 
@@ -1357,7 +1357,7 @@ export class GCGControl {
 
               if (talkSect) {
                 talkSect.title = 'Intro';
-                talkSect.prependFreeForm(`;(${this.ctrl.i18n('TalkToNpc', {npcName: stage.OppoPlayerNameText})})\n`)
+                talkSect.prependFreeForm(`;(${this.ctrl.i18n('TalkToNpc', { npcName: stage.OppoPlayerNameText })})\n`)
                 stage.StageTalk.children.unshift(talkSect);
               }
             }
@@ -1385,7 +1385,7 @@ export class GCGControl {
           } else if (section.originalData.dialogBranch && section.originalData.dialogBranch[0]) {
             let dialog = section.originalData.dialogBranch[0];
 
-            let idleSect = new DialogueSectionResult('Dialog_'+dialog.Id, 'Idle Quote');
+            let idleSect = new DialogueSectionResult('Dialog_' + dialog.Id, 'Idle Quote');
             idleSect.addHeaderProp('Dialogue ID', dialog.Id);
             idleSect.prependFreeForm(`:{{DIcon|Idle}} ${dialog.TalkContentText}`)
 

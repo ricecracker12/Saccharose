@@ -145,7 +145,7 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
     let addendum = '';
     if (deckCard?.RelatedCharacter) {
       const relatedCharName = deckCard?.RelatedCharacter?.WikiName;
-      addendum += ` dành cho [[${relatedCharName} (Thẻ Nhân Vật)|${relatedCharName}]]`;
+      addendum += `dành cho [[${relatedCharName} (Thẻ Nhân Vật)|${relatedCharName}]]`;
     }
     sb.line(`'''${card.WikiName}''' là một [[${card.WikiType}]]${preType}${addendum} trong [[Thất Thánh Triệu Hồi]].`);
   }
@@ -225,9 +225,9 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
 
   sb.line('==Điều Hướng==');
   if (isCharacterCard(card)) {
-    sb.line(`{{Genius Invokation TCG Navbox|${card.WikiType} ${card.IsCanObtain ? 'Obtainable' : 'Unobtainable'}}}`);
+    sb.line(`{{Genius Invokation TCG Navbox|${card.WikiTypeEN} ${card.IsCanObtain ? 'Obtainable' : 'Unobtainable'}}}`);
   } else {
-    sb.line(`{{Genius Invokation TCG Navbox|${card.WikiType}}}`);
+    sb.line(`{{Genius Invokation TCG Navbox|${card.WikiTypeEN}}}`);
   }
   sb.line();
 
