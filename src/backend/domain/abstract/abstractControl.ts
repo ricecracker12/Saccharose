@@ -411,7 +411,7 @@ export abstract class AbstractControl<T extends AbstractControlState = AbstractC
   async normalize(json: any | any[], schemaTable: string | SchemaTable, doNormText: boolean = false) {
     if (typeof schemaTable === 'string') {
       let fileBaseName = '/' + basename(schemaTable);
-      schemaTable = Object.values(this.schema).find(s => !s.name.startsWith('Relation') && s.jsonFile.endsWith(fileBaseName));
+      schemaTable = Object.values(this.schema).find(s => !s.name.startsWith('Relation') && toArray(s.jsonFile).some(f => f.endsWith(fileBaseName)));
     }
     json = normalizeRawJson(json, schemaTable);
     if (Array.isArray(json)) {
