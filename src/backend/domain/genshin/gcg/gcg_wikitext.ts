@@ -121,7 +121,7 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
     if (tag.Type === 'GCG_TAG_TALENT') {
       preType += `[[Thẻ Thiên Phú|Thiên Phú]] `;
     } else if (tag.Type === 'GCG_TAG_SLOWLY') {
-      preType += `[[Thẻ Hành Động Chiến Đấu Thiên Phú|Hành Động Chiến Đấu]] `;
+      preType += `[[Thẻ Hành Động Chiến Đấu|Hành Động Chiến Đấu]] `;
     } else if (tag.Type === 'GCG_TAG_FOOD') {
       preType += `[[Thẻ Thức Ăn|Thức Ăn]] `;
     } else if (tag.Type === 'GCG_TAG_PLACE') {
