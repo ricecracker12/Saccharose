@@ -55,6 +55,7 @@ Thumbs.db
 
 # Dependency directories
 node_modules/
+venv-sucrose/
 
 # Build output
 /dist
@@ -67,3 +68,5 @@ node_modules/
 *.vue.script.ts
 *.vue.template.ts
 access.log
+
+*.pem
