@@ -162,7 +162,7 @@ If you don't want to use SSL locally, you can use these settings:
        
 You'll need to repeat this step after every new Genshin Impact version.
 
-It's recommended you install `npx tsx` globally with `npm install -g npx tsx`
+It's recommended you install `tsx` globally with `npm install -g tsx`
 
 1.  **Obtain data folders for GI/HSR/ZZZ**
    
@@ -235,7 +235,7 @@ automatically reload  the code as you're developing. This is much faster than ru
 `npm run build:dev` and `npm run start` every time you make a code change.
 
  * Run `npm run ts-serve:dev` to start the backend with live-reloading.
- * Run `npm run rspack:dev-watch` to start the frontend with live-reloading.
+ * Run `npm run rspack:dev:watch` to start the frontend with live-reloading.
 
 It doesn't matter which order you run those two commands in.
 

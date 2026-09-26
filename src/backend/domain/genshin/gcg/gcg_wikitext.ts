@@ -135,19 +135,24 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
     }
   }
 
+  preType = preType.trim();
+
   if (isCharacterCard(card)) {
+    const typeText = [`[[${card.WikiType}]]`, preType].filter(x => !!x).join(' ');
     if (card.IsCanObtain) {
-      sb.line(`'''${card.WikiName}''' là một [[${card.WikiType}]]${preType} trong [[Thất Thánh Triệu Hồi]].`);
+      sb.line(`'''${card.WikiName}''' là một ${typeText} trong [[Thất Thánh Triệu Hồi]].`);
     } else {
-      sb.line(`'''${card.WikiName}''' là một [[${card.WikiType}]]${preType} không thể nhận trong [[Thất Thánh Triệu Hồi]].`);
+      sb.line(`'''${card.WikiName}''' là một ${typeText} không thể nhận trong [[Thất Thánh Triệu Hồi]].`);
     }
   } else {
     let addendum = '';
     if (deckCard?.RelatedCharacter) {
-      const relatedCharName = deckCard?.RelatedCharacter?.WikiName;
-      addendum += `dành cho [[${relatedCharName} (Thẻ Nhân Vật)|${relatedCharName}]]`;
+      const relatedCharName = deckCard.RelatedCharacter.WikiName;
+      const relatedCharType = deckCard.RelatedCharacter.WikiType || 'Thẻ Nhân Vật';
+      addendum = `dành cho [[${relatedCharName} (${relatedCharType})|${relatedCharName}]]`;
     }
-    sb.line(`'''${card.WikiName}''' là một [[${card.WikiType}]] ` + `${preType}${addendum} trong [[Thất Thánh Triệu Hồi]].`);
+    const typeText = [`[[${card.WikiType}]]`, preType, addendum].filter(x => !!x).join(' ');
+    sb.line(`'''${card.WikiName}''' là một ${typeText} trong [[Thất Thánh Triệu Hồi]].`);
   }
   sb.line();
 
@@ -167,14 +172,13 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
       if (cardFaceItem) {
         const golden: boolean = cardFaceItem.Icon?.toLowerCase()?.includes('gold') || false;
         const platinum: boolean = cardFaceItem.Icon?.toLowerCase()?.includes('platinum') || false;
-        if (golden) {
-          sb.line(`Sau khi Độ Thuần Thục đạt cấp ${prof.Proficiency}, người chơi sẽ nhận được Mặt Bài Kỳ Ảo sau:<br>` +
-            `{{TCG Card|${cardFaceItem.NameText}|1|golden=1|caption=1}}`);
-          sb.line();
-        }
         if (platinum) {
           sb.line(`Sau khi Độ Thuần Thục đạt cấp ${prof.Proficiency}, người chơi sẽ nhận được Mặt Bài Lấp Lánh sau:<br>` +
             `{{TCG Card|${cardFaceItem.NameText}|1|platinum=1|caption=1}}`);
+          sb.line();
+        } else if (golden) {
+          sb.line(`Sau khi Độ Thuần Thục đạt cấp ${prof.Proficiency}, người chơi sẽ nhận được Mặt Bài Kỳ Ảo sau:<br>` +
+            `{{TCG Card|${cardFaceItem.NameText}|1|golden=1|caption=1}}`);
           sb.line();
         }
       }
@@ -262,7 +266,7 @@ export async function generateStageTemplate(control: GCGControl, stage: GCGGameE
     // Active/Lineup:
     sb.prop('lineup', stage.EnemyCardGroup.WikiActiveText);
 
-    // Action:${card.WikiType}
+    // Action:
     sb.prop('action', stage.EnemyCardGroup.WikiActionText);
 
     // Reserve:

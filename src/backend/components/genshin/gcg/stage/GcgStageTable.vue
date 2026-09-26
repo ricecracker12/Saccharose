@@ -30,10 +30,10 @@
           <span class="code" style="font-size:14px">{{ stage.LevelType }}</span>
         </td>
         <td>
-          <span style="display:inline-block;font-size:14px;line-height:18px;">{{ stage.WikiGroup || 'No Group' }}</span>
+          <span style="display:inline-block;font-size:14px;line-height:18px;">{{ stage.WikiGroup || 'Không Có Nhóm' }}</span>
         </td>
         <td>
-          <span style="display:inline-block;font-size:14px;line-height:18px;">{{ stage.WikiType || 'No Type' }}</span>
+          <span style="display:inline-block;font-size:14px;line-height:18px;">{{ stage.WikiType || 'Không Có Loại' }}</span>
         </td>
       </tr>
     </tbody>

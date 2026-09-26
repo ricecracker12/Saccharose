@@ -52,7 +52,7 @@ function pgGamedataDatabase(db: string) {
       database: db,
       user: ENV.POSTGRES_SITE_USER,
       password: ENV.POSTGRES_SITE_PASSWORD,
-      port: toInt(ENV.POSTGRES_GAMEDATA_PORT, 5432),
+      port: toInt(ENV.POSTGRES_SITE_PORT, 5432),
     },
     pool: {
       max: 30,

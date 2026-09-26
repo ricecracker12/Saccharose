@@ -51,7 +51,7 @@ export default async function(): Promise<Router> {
       defaultMap(() => defaultMap('Array'));
 
     for (let stage of stages) {
-      stagesByGroupAndType[stage.WikiGroup || 'No Group'][stage.WikiType || 'No Type'].push(stage);
+      stagesByGroupAndType[stage.WikiGroup || 'Không Có Nhóm'][stage.WikiType || 'Không Có Loại'].push(stage);
     }
 
     await res.renderComponent(GcgStageListPage, {

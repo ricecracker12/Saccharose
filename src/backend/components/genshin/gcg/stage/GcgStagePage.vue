@@ -52,18 +52,18 @@
             <tr>
               <td class="no-border">&nbsp;</td>
               <td class="bold" style="padding-left:20px">Wiki Group</td>
-              <td class="w70p">{{ stage.WikiGroup || 'No Group' }}</td>
+              <td class="w70p">{{ stage.WikiGroup || 'Không Có Nhóm' }}</td>
             </tr>
             <tr>
               <td class="no-border">&nbsp;</td>
               <td class="bold" style="padding-left:20px">Wiki Type</td>
-              <td class="w70p">{{ stage.WikiType || 'No Type' }}</td>
+              <td class="w70p">{{ stage.WikiType || 'Không Có Loại' }}</td>
             </tr>
             <template v-if="stage.LevelDifficulty">
               <tr>
                 <td class="no-border">&nbsp;</td>
                 <td class="bold" style="padding-left:20px">Level Difficulty</td>
-                <td class="w70p">{{ stage.LevelDifficulty === 'NORMAL' ? 'Friendly Fracas' : 'Serious Showdown' }}</td>
+                <td class="w70p">{{ stage.LevelDifficulty === 'NORMAL' ? 'Đánh Giải Trí' : 'Đánh Nghiêm Túc' }}</td>
               </tr>
             </template>
             <tr>
