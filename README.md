@@ -45,7 +45,7 @@ git push
 3. Trên Windows, cấu hình Bash làm shell cho npm script:
    - 64bit: `npm config set script-shell "C:\\Program Files\\git\\bin\\bash.exe"`
    - 32bit: `npm config set script-shell "C:\\Program Files (x86)\\git\\bin\\bash.exe"`
-4. Nên cài `tsx` để chạy các script import: `npm install -g tsx`
+4. Các script import chạy bằng `ts-node` có sẵn trong dự án (không dùng `tsx`/`npx tsx`: `--deobf-excel` chạy worker thread và cần loader nằm trong tham số của `node`). Xem biến `TSN` ở phần [Dữ liệu game](#dữ-liệu-game-genshin).
 5. Chép `.env.example` thành `.env` và cấu hình theo phần dưới.
 
 ### Cấu hình `.env`
@@ -170,6 +170,13 @@ Các file SQL nằm trong `src/pipeline/`.
 Làm lại các bước này sau mỗi phiên bản Genshin mới. Chạy từ thư mục repo. Mỗi lần chạy `import_genshin_files.ts`
 chỉ được truyền một cờ.
 
+Các lệnh dưới đây dùng biến `TSN` (chạy TypeScript bằng `ts-node` giống các script `npm` của dự án). Đặt nó trong
+phiên shell trước khi chạy:
+
+```shell
+TSN="node --no-warnings=ExperimentalWarning --loader ts-node/esm"
+```
+
 Schema của Saccharose dùng **tên trường của bản 5.4**. Dữ liệu các bản mới hơn đã đổi tên hoặc làm rối nhiều trường
 (ví dụ `id` của `DialogExcelConfigData` thành `GFLDJMJKIKE`), nên phải "giải mã" bằng cách đối chiếu giá trị với bản
 5.4 trước khi import. Bỏ qua bước này thì `import_db` sẽ lỗi `null value in column "Id"`.
@@ -228,9 +235,9 @@ Dùng hai kho dữ liệu của Dimbreath:
 
 2. **Giải mã và dựng excel** (trước khi import DB, đúng thứ tự):
    ```shell
-   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --deobf-excel
-   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --deobf-bin
-   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --make-excels
+   $TSN ./src/backend/importer/genshin/import_genshin_files.ts --deobf-excel
+   $TSN ./src/backend/importer/genshin/import_genshin_files.ts --deobf-bin
+   $TSN ./src/backend/importer/genshin/import_genshin_files.ts --make-excels
    ```
    - `--deobf-excel`: đọc `ExcelBinOutput.Raw`, đổi tên trường theo bản 5.4, ghi ra `ExcelBinOutput`. Tốn CPU và có thể chạy lâu.
    - `--deobf-bin`: làm tương tự cho các thư mục cần dùng trong `BinOutput.Raw` → `BinOutput`.
@@ -239,17 +246,17 @@ Dùng hai kho dữ liệu của Dimbreath:
 
 3. **Normalize** (trước khi import DB):
    ```shell
-   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --normalize-tm
-   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --normalize-ex
+   $TSN ./src/backend/importer/genshin/import_genshin_files.ts --normalize-tm
+   $TSN ./src/backend/importer/genshin/import_genshin_files.ts --normalize-ex
    ```
    `--normalize-ex` xoá `TalkExcelConfigData_0/_1.json` trong `ExcelBinOutput` vì `TalkExcelConfigData.json` đã được
    `--make-excels` dựng lại đầy đủ.
 
 4. **Các file hỗ trợ khác** (trước khi import DB):
    ```shell
-   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --plaintext
-   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --voice-items
-   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --gcg-skill
+   $TSN ./src/backend/importer/genshin/import_genshin_files.ts --plaintext
+   $TSN ./src/backend/importer/genshin/import_genshin_files.ts --voice-items
+   $TSN ./src/backend/importer/genshin/import_genshin_files.ts --gcg-skill
    ```
    - `--plaintext`: tạo `TextMap/Plain/PlainTextMap<LangCode>_Hash.dat` và `_Text.dat`.
    - `--voice-items`: tạo `VoiceItems.json` từ `BinOutput/Voice/Items`.
@@ -257,13 +264,13 @@ Dùng hai kho dữ liệu của Dimbreath:
 
 5. **Import vào PostgreSQL:**
    ```shell
-   npx tsx ./src/backend/importer/import_db.ts --game genshin --run-all
+   $TSN ./src/backend/importer/import_db.ts --game genshin --run-all
    ```
    Dùng `--help` để xem các tùy chọn khác (ví dụ `--run-only <bảng>` để import lại một vài bảng).
 
 6. **Sau khi import DB:**
    ```shell
-   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --index
+   $TSN ./src/backend/importer/genshin/import_genshin_files.ts --index
    ```
    Tạo bảng `textmap_search_index` phục vụ tìm kiếm.
 
