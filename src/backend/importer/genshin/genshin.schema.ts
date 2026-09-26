@@ -1233,7 +1233,7 @@ export const genshinSchema = {
     name: 'GCGDeckBackExcelConfigData',
     jsonFile: './ExcelBinOutput/GCGDeckBackExcelConfigData.json',
     columns: [
-      { name: 'Id', type: 'integer', isPrimary: true },
+      { name: 'Id', type: 'integer', isPrimary: true, defaultValue: 0 }, // first row omits id (= 0)
       { name: 'ItemId', type: 'integer', isIndex: true },
       { name: 'NameTextMapHash', type: 'text', isIndex: true },
       { name: 'DescTextMapHash', type: 'text', isIndex: true },
@@ -1244,7 +1244,7 @@ export const genshinSchema = {
     name: 'GCGDeckFieldExcelConfigData',
     jsonFile: './ExcelBinOutput/GCGDeckFieldExcelConfigData.json',
     columns: [
-      { name: 'Id', type: 'integer', isPrimary: true },
+      { name: 'Id', type: 'integer', isPrimary: true, defaultValue: 0 }, // first row omits id (= 0)
       { name: 'ItemId', type: 'integer', isIndex: true },
       { name: 'NameTextMapHash', type: 'text', isIndex: true },
       { name: 'DescTextMapHash', type: 'text', isIndex: true },
