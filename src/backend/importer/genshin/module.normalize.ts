@@ -65,34 +65,11 @@ export async function genshinNormalize(mode: 'textmap'|'excel'|'both') {
   }
 }
 
-/**
- * Upstream deletes TalkExcelConfigData_0/_1 and relies on `--make-excels` to rebuild TalkExcelConfigData.json from
- * BinOutput/Talk, but the deobfuscation map in make-excels doesn't match our data source. Instead, merge the split
- * excel files into TalkExcelConfigData.json. The split files are kept since the data folder is a git checkout.
- */
 async function delBadTalk() {
-  const splitFiles: string[] = [];
-  for (let i = 0; ; i++) {
-    const splitPath = getGenshinDataFilePath(`./ExcelBinOutput/TalkExcelConfigData_${i}.json`);
-    if (!fs.existsSync(splitPath)) {
-      break;
-    }
-    splitFiles.push(splitPath);
-  }
-  if (!splitFiles.length) {
-    return;
-  }
-
-  const merged: any[] = [];
-  for (let splitPath of splitFiles) {
-    console.log('  Merging ' + splitPath);
-    const rows: any[] = await fsReadJson(splitPath);
-    for (let row of rows) {
-      merged.push(row);
-    }
-  }
-
-  const outPath = getGenshinDataFilePath('./ExcelBinOutput/TalkExcelConfigData.json');
-  fs.writeFileSync(outPath, JSON.stringify(merged, null, 2), 'utf-8');
-  console.log('  Wrote ' + merged.length + ' talks to ' + outPath);
+  const t0 = getGenshinDataFilePath('./ExcelBinOutput/TalkExcelConfigData_0.json');
+  const t1 = getGenshinDataFilePath('./ExcelBinOutput/TalkExcelConfigData_1.json');
+  if (fs.existsSync(t0))
+    fs.unlinkSync(t0);
+  if (fs.existsSync(t1))
+    fs.unlinkSync(t1);
 }

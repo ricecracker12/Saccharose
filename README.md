@@ -167,24 +167,76 @@ Các file SQL nằm trong `src/pipeline/`.
 
 ## Dữ liệu game (Genshin)
 
-Làm lại các bước này sau mỗi phiên bản Genshin mới. Chạy từ thư mục repo.
+Làm lại các bước này sau mỗi phiên bản Genshin mới. Chạy từ thư mục repo. Mỗi lần chạy `import_genshin_files.ts`
+chỉ được truyền một cờ.
 
-1. **Lấy thư mục dữ liệu** (git clone bộ dữ liệu AnimeGameData) và trỏ `GENSHIN_DATA_ROOT` tới đó. Thư mục cần có:
-   `ExcelBinOutput`, `BinOutput`, `Readable`, `Subtitle`, `TextMap`.
-   Bộ dữ liệu này đã được giải mã (deobfuscate) sẵn nên **không** cần `--deobf-excel` / `--deobf-bin`.
+Schema của Saccharose dùng **tên trường của bản 5.4**. Dữ liệu các bản mới hơn đã đổi tên hoặc làm rối nhiều trường
+(ví dụ `id` của `DialogExcelConfigData` thành `GFLDJMJKIKE`), nên phải "giải mã" bằng cách đối chiếu giá trị với bản
+5.4 trước khi import. Bỏ qua bước này thì `import_db` sẽ lỗi `null value in column "Id"`.
 
-2. **Normalize** (trước khi import DB):
+### Bố trí thư mục
+
+Không dùng trực tiếp thư mục git clone làm `GENSHIN_DATA_ROOT`, vì các bước dưới đây ghi đè `ExcelBinOutput` và
+`BinOutput`. Ví dụ bố trí (trên VPS):
+
+```
+~/sucrose/AnimeGameData/     git clone bộ dữ liệu (bản mới nhất, lịch sử có bản 5.4)
+~/sucrose/archives/          GENSHIN_ARCHIVES
+    5.4/ExcelBinOutput/      trích từ commit 5.4
+    5.4/BinOutput/...        trích từ commit 5.4
+~/sucrose/genshin-data/      GENSHIN_DATA_ROOT (thư mục làm việc)
+    ExcelBinOutput.Raw  ->   symlink tới AnimeGameData/ExcelBinOutput
+    BinOutput.Raw       ->   symlink tới AnimeGameData/BinOutput
+    Readable, Subtitle  ->   symlink tới AnimeGameData/...
+    TextMap/                 bản sao (normalize-tm ghi file vào đây)
+    ExcelBinOutput/, BinOutput/   do các bước deobf / make-excels sinh ra
+```
+
+1. **Chuẩn bị bản 5.4 và thư mục làm việc** (chỉ cần làm lần đầu, trừ bước cập nhật TextMap).
+
+   Nếu kho có bản 5.4 (kho cũ `AnimeGameData`) không cập nhật tới phiên bản mới nhất, dùng hai kho: kho cũ chỉ để
+   trích bản 5.4, còn dữ liệu thô bản mới lấy từ kho mới (`animegamedata2`), thay đường dẫn tương ứng ở các lệnh `ln` bên dưới.
+   ```shell
+   cd ~/sucrose/AnimeGameData
+   git log --oneline | grep -E "5\.4\."        # chọn commit 5.4 mới nhất, ví dụ abc1234
+   mkdir -p ~/sucrose/archives/5.4
+   git archive abc1234 ExcelBinOutput BinOutput/Quest BinOutput/Talk BinOutput/Voice/Items BinOutput/InterAction/QuestDialogue \
+     | tar -x -C ~/sucrose/archives/5.4
+
+   mkdir -p ~/sucrose/genshin-data && cd ~/sucrose/genshin-data
+   ln -sfn ~/sucrose/AnimeGameData/ExcelBinOutput ExcelBinOutput.Raw
+   ln -sfn ~/sucrose/AnimeGameData/BinOutput      BinOutput.Raw
+   ln -sfn ~/sucrose/AnimeGameData/Readable       Readable
+   ln -sfn ~/sucrose/AnimeGameData/Subtitle       Subtitle
+   rm -rf TextMap && cp -r ~/sucrose/AnimeGameData/TextMap TextMap   # làm lại sau mỗi lần cập nhật dữ liệu
+   ```
+   Trong `.env`:
+   ```dotenv
+   GENSHIN_DATA_ROOT=/home/ubuntu/sucrose/genshin-data
+   GENSHIN_ARCHIVES=/home/ubuntu/sucrose/archives
+   ```
+   Cập nhật dữ liệu game mới: `git -C ~/sucrose/AnimeGameData pull`, chép lại `TextMap`, rồi chạy tiếp từ bước 2.
+
+2. **Giải mã và dựng excel** (trước khi import DB, đúng thứ tự):
+   ```shell
+   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --deobf-excel
+   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --deobf-bin
+   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --make-excels
+   ```
+   - `--deobf-excel`: đọc `ExcelBinOutput.Raw`, đổi tên trường theo bản 5.4, ghi ra `ExcelBinOutput`. Tốn CPU và có thể chạy lâu.
+   - `--deobf-bin`: làm tương tự cho các thư mục cần dùng trong `BinOutput.Raw` → `BinOutput`.
+   - `--make-excels`: dựng `MainQuest`, `Quest`, `Talk`, `Dialog`, `DialogUnparented`, `CodexQuest`,
+     `FurnitureSuiteUnits` excel từ `BinOutput` (game không còn xuất đầy đủ các excel này).
+
+3. **Normalize** (trước khi import DB):
    ```shell
    npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --normalize-tm
    npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --normalize-ex
    ```
-   `--normalize-ex` sẽ gộp `TalkExcelConfigData_0.json`, `_1.json`… thành `TalkExcelConfigData.json`
-   (các file tách được giữ nguyên để không ảnh hưởng `git pull` của thư mục dữ liệu).
+   `--normalize-ex` xoá `TalkExcelConfigData_0/_1.json` trong `ExcelBinOutput` vì `TalkExcelConfigData.json` đã được
+   `--make-excels` dựng lại đầy đủ.
 
-   > **Không chạy `--make-excels`.** Bước này dựng lại các excel Quest/Talk/Dialog từ `BinOutput` bằng bảng giải mã
-   > không khớp với bộ dữ liệu đang dùng, và sẽ ghi đè các file excel đúng.
-
-3. **Các file hỗ trợ khác** (trước khi import DB):
+4. **Các file hỗ trợ khác** (trước khi import DB):
    ```shell
    npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --plaintext
    npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --voice-items
@@ -194,16 +246,13 @@ Làm lại các bước này sau mỗi phiên bản Genshin mới. Chạy từ t
    - `--voice-items`: tạo `VoiceItems.json` từ `BinOutput/Voice/Items`.
    - `--gcg-skill`: tạo `GCGCharSkillDamage.json` từ `BinOutput/GCG/Gcg_DeclaredValueSet` (cần cho trang TCG).
 
-   Mỗi lần chạy chỉ được truyền một cờ.
-
-4. **Import vào PostgreSQL:**
+5. **Import vào PostgreSQL:**
    ```shell
-   npx tsx ./src/backend/importer/import_db.ts --game genshin --run-all-except DialogUnparentedExcelConfigData,CodexQuestExcelConfigData,FurnitureSuiteUnitsExcelConfigData
+   npx tsx ./src/backend/importer/import_db.ts --game genshin --run-all
    ```
-   Ba bảng bị loại trừ chỉ có dữ liệu khi chạy `--make-excels`; nếu dùng `--run-all` thì import sẽ dừng vì thiếu file.
    Dùng `--help` để xem các tùy chọn khác (ví dụ `--run-only <bảng>` để import lại một vài bảng).
 
-5. **Sau khi import DB:**
+6. **Sau khi import DB:**
    ```shell
    npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --index
    ```
