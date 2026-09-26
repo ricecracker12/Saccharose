@@ -62,8 +62,9 @@ Những điểm khác so với repo gốc:
   POSTGRES_SITE_DATABASE=saccharose
   POSTGRES_GAMEDATA_DATABASE_GENSHIN=genshin
   ```
-- **Tắt các game không dùng:** code đọc biến `*_DISABLED` (các dòng `*_ENABLED` trong `.env.example` không có tác dụng).
+- **Tắt các game không dùng:** dùng các biến `*_DISABLED` (`.env.example` đã tắt sẵn HSR, ZZZ, WuWa).
   Khi đã tắt, có thể bỏ trống `POSTGRES_GAMEDATA_DATABASE_*` và `*_DATA_ROOT` của game đó.
+  Nếu `.env` của bạn được tạo từ bản cũ và còn các dòng `*_ENABLED`, hãy thay bằng `*_DISABLED` vì code không đọc `*_ENABLED`.
   ```dotenv
   HSR_DISABLED=true
   ZENLESS_DISABLED=true
