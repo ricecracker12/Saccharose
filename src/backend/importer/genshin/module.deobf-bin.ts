@@ -522,8 +522,10 @@ async function mapTalk(): Promise<Record<string, string>> {
     // 'Storyboard', 'StoryboardGroup'
   ];
 
+  // Upstream uses 7009601.json, which only exists since 6.6 and so is missing from our 5.4 archive.
+  // 100013.json exists in both 5.4 and current data and covers the same set of keys.
   const MUST_INCLUDE_FILES: Record<string, string[]> = {
-    'Quest': ['7009601.json'],
+    'Quest': ['100013.json'],
   }
 
   for (let SUB_FOLDER of SUB_FOLDERS) {
