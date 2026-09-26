@@ -257,10 +257,13 @@ Dùng hai kho dữ liệu của Dimbreath:
    $TSN ./src/backend/importer/genshin/import_genshin_files.ts --plaintext
    $TSN ./src/backend/importer/genshin/import_genshin_files.ts --voice-items
    $TSN ./src/backend/importer/genshin/import_genshin_files.ts --gcg-skill
+   $TSN ./src/backend/importer/genshin/import_genshin_files.ts --interaction
    ```
    - `--plaintext`: tạo `TextMap/Plain/PlainTextMap<LangCode>_Hash.dat` và `_Text.dat`.
    - `--voice-items`: tạo `VoiceItems.json` từ `BinOutput/Voice/Items`.
    - `--gcg-skill`: tạo `GCGCharSkillDamage.json` từ `BinOutput/GCG/Gcg_DeclaredValueSet` (cần cho trang TCG).
+   - `--interaction`: tạo `InterActionD2F.json` và thư mục `InterAction/` từ `BinOutput/InterAction/QuestDialogue`
+     (bắt buộc: bảng `Relation_DialogToNext` của `import_db` cần file này).
 
 5. **Import vào PostgreSQL:**
    ```shell
