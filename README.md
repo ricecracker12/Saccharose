@@ -1,106 +1,123 @@
-# Saccharose.wiki
+# Saccharose.wiki (bản fork tiếng Việt – nhánh `nguyen`)
 
-**Saccharose.wiki** is a web app that provides various tools to auto-generate wikitext for use by the editors of the
-[Genshin Impact Fandom Wiki](https://genshin-impact.fandom.com/wiki/Genshin_Impact_Wiki)
+Đây là bản fork của [kwwxis/Saccharose](https://github.com/kwwxis/Saccharose), chỉnh sửa để sinh wikitext
+**Thất Thánh Triệu Hồi (TCG)** bằng tiếng Việt. Chỉ phần TCG của Genshin Impact được dùng; các phần khác
+(HSR, ZZZ, WuWa, công cụ khác) vẫn còn trong code nhưng không được hỗ trợ trên bản fork này.
 
-## Prerequisites
+## Nhánh
 
-- Git
-- Node.js
-- Python 3
-- PIP package: `pycld2`
-  - On Linux, run: `pip install pycld2`
-  - On Windows, pip installing does not work!
-    
-    Instead, clone [the repo](https://github.com/aboSamoor/pycld2), `cd` into it, and run `./setup.py install` as admin.
+- `master`: chỉ dùng để đồng bộ với repo gốc, không commit trực tiếp.
+- `nguyen`: toàn bộ sửa đổi của bản fork.
 
-### Optional Prerequisites
+Cập nhật từ repo gốc:
 
-This is only necessary to be installed if you plan to use or develop the "media-search" functionality.
+```shell
+git switch master
+git pull --ff-only            # master theo dõi upstream/master
+git push origin master
+git switch nguyen
+git merge master
+git push
+```
 
-- PostgreSQL (must be installed in a Linux system)
-  1. On Windows, install in WSL: https://learn.microsoft.com/en-us/windows/wsl/install-manual
-  2. Install PostgreSQL https://www.postgresql.org/download/linux/ubuntu/
-  3. Modify `postgresql.conf` and set `listen_addresses = '*'`
-  4. In WSL, install apt packages: `make`, `build-essential` (Linux should already have these)
-- Other PIP packages: `imagehash`, `psycopg2`, `python-dotenv`
-  - On Linux, having PostgreSQL installed is required to install `psycopg2`
-  - On Linux, you'll need to apt-get install `libpq-dev` and `python3-dev` first to install psycopg2.
-  - On Windows, you can install these in Windows, not WSL
-- Install `pg-spgist_hamming` on the system with PostgreSQL installed (https://github.com/fake-name/pg-spgist_hamming)
-  - First run: `sudo apt install postgresql-server-dev-XX`
-    - Replace `XX` with your installed version of PostgreSQL
-  - Follow instructions:
-    ```
-    cd bktree
-    make
-    sudo make install
-    ```
+## Yêu cầu
 
-## Setup
+- Git (trên Windows cần Git Bash)
+- Node.js `24.12.0` và npm `11.6.2` (theo `engines` trong `package.json`)
+- PostgreSQL (bắt buộc – cả dữ liệu site lẫn dữ liệu game đều nằm trong PostgreSQL)
+  - Trên Windows, cài trong WSL: https://learn.microsoft.com/en-us/windows/wsl/install-manual
+  - Nếu truy cập từ máy khác, sửa `postgresql.conf`: `listen_addresses = '*'`
+- Redis (không bắt buộc, nhưng nên có để cache lâu dài)
+- Python 3 + PIP `pycld2` (không bắt buộc – chỉ dùng để đoán ngôn ngữ khi tìm kiếm; bỏ trống `PYTHON_COMMAND` để tắt)
 
-1. Clone the repo from GitHub (`git clone git@github.com:kwwxis/Saccharose.git`)
-2. Run `npm install` in the repo
-3. If on Windows, run this command to configure Bash as the script shell:
+## Cài đặt
 
-   - 32bit: `npm config set script-shell "C:\\Program Files (x86)\\git\\bin\\bash.exe" `
+1. Clone và chuyển sang nhánh `nguyen`:
+   ```shell
+   git clone https://github.com/ricecracker12/Saccharose.git
+   cd Saccharose
+   git switch nguyen
+   git remote add upstream https://github.com/kwwxis/Saccharose.git
+   git fetch upstream
+   git branch --set-upstream-to=upstream/master master
+   ```
+2. `npm install`
+3. Trên Windows, cấu hình Bash làm shell cho npm script:
    - 64bit: `npm config set script-shell "C:\\Program Files\\git\\bin\\bash.exe"`
+   - 32bit: `npm config set script-shell "C:\\Program Files (x86)\\git\\bin\\bash.exe"`
+4. Nên cài `tsx` để chạy các script import: `npm install -g tsx`
+5. Chép `.env.example` thành `.env` và cấu hình theo phần dưới.
 
-4. Copy `.env.example` to new file `.env` and configure it according to the comments and this readme.
+### Cấu hình `.env`
 
-### shell setup
-       
-**Bash** is required for this program to run in all operating systems, specifically it
-uses the `grep` command. 
+Những điểm khác so với repo gốc:
 
-So you must specify a `SHELL_PATH` and `SHELL_EXEC` in the `.env` file.
-
-If you're on Linux/Unix, you should already have Bash. But on Windows,
-it's recommended that you install [Git Bash](https://git-scm.com/downloads).
-
-After installing Git Bash, you can configure the follow:
- - On Windows:
+- **PostgreSQL:** bản fork dùng chung một máy chủ PostgreSQL cho site và dữ liệu game.
+  Kết nối tới database game dùng `POSTGRES_SITE_HOST`, `POSTGRES_SITE_USER`, `POSTGRES_SITE_PASSWORD`,
+  `POSTGRES_SITE_PORT` (mặc định `5432`); các biến `POSTGRES_GAMEDATA_HOST/USER/PASSWORD/PORT` không được dùng.
+  ```dotenv
+  POSTGRES_SITE_HOST=localhost
+  POSTGRES_SITE_USER=...
+  POSTGRES_SITE_PASSWORD=...
+  POSTGRES_SITE_DATABASE=saccharose
+  POSTGRES_GAMEDATA_DATABASE_GENSHIN=genshin
+  ```
+- **Tắt các game không dùng:** code đọc biến `*_DISABLED` (các dòng `*_ENABLED` trong `.env.example` không có tác dụng).
+  Khi đã tắt, có thể bỏ trống `POSTGRES_GAMEDATA_DATABASE_*` và `*_DATA_ROOT` của game đó.
+  ```dotenv
+  HSR_DISABLED=true
+  ZENLESS_DISABLED=true
+  WUWA_DISABLED=true
+  ```
+  Vẫn giữ các khóa `EXT_HSR_IMAGES=`, `EXT_ZENLESS_IMAGES=`, `EXT_WUWA_IMAGES=` trong `.env` (để trống cũng được).
+- **Shell:** bắt buộc có Bash (dùng lệnh `grep`).
+  - Windows:
     ```dotenv
     SHELL_PATH='/mingw64/bin:/usr/local/bin:/usr/bin:/bin:/mingw64/bin:/usr/bin'
     SHELL_EXEC='C:/Program Files/Git/usr/bin/bash.exe'
     ```
- - On Linux:
+  - Linux:
     ```dotenv
     SHELL_PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
     SHELL_EXEC=/bin/bash
     ```
+- **Đăng nhập Discord:** tạo ứng dụng Discord, điền `DISCORD_APP_CLIENT_ID` / `DISCORD_APP_CLIENT_SECRET`
+  và thêm redirect URL `https://<WEB_DOMAIN>/auth/callback`.
+- **Secrets:** điền `SESSION_SECRET`, `JWT_SECRET`, `CSRF_TOKEN_SECRET` bằng chuỗi ngẫu nhiên.
 
-### SSL setup
-       
-This project can be run both with and without SSL. For local development, it doesn't really
-matter much, so if you're having trouble getting SSL working or don't want to bother, then you can just skip it.
+### Tên miền hợp lệ
 
-1. Create a file called `openssl.<WEB_DOMAIN>.cnf` with these contents.
-   
-   Replace `<WEB_DOMAIN>` in the file name and the file contents with the `WEB_DOMAIN` in your `.env` file.
-   
+Server từ chối mọi request có `Host` không nằm trong `VALID_HOSTS` ở
+[`src/backend/middleware/request/antiBots.ts`](src/backend/middleware/request/antiBots.ts).
+Bản fork đã thêm `localhost:3001`, `127.0.0.1:3001` và `sucrose.banhgao.net`. Nếu chạy trên tên miền hoặc cổng khác,
+thêm vào danh sách này (kèm cổng nếu không phải 80/443).
+
+### SSL
+
+Nếu chạy sau reverse proxy (Nginx, Cloudflare…) thì không cần SSL trong app:
+
+```dotenv
+VHOSTED=0
+HTTP_PORT=3001
+SSL_ENABLED=false
+TRUST_PROXY=true
+```
+
+Chạy local không SSL: như trên với `TRUST_PROXY=false`, truy cập `http://localhost:3001/`.
+
+<details>
+<summary>Tự tạo chứng chỉ SSL cho local (tùy chọn)</summary>
+
+1. Tạo file `openssl.<WEB_DOMAIN>.cnf`:
    ```
    authorityKeyIdentifier=keyid,issuer
    basicConstraints=CA:FALSE
    keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
    subjectAltName=DNS:<WEB_DOMAIN>
    ```
-
-2. Run `openssl genrsa -des3 -out rootSSL.key 2048`. It'll ask you to create a password, only you're using this
-   password so it doesn't need to be a very good password but make sure you remember it as you'll be asked to
-   re-enter this password in later commands.
-
-3. Run `openssl req -x509 -new -nodes -key rootSSL.key -sha256 -days 1024 -out rootSSL.pem`. It'll give you a
-   questionnaire, fill it out appropriately. For the "Common Name" question, give it a decent name so you know
-   what it's for (e.g. "Self-Signed Local Certificate").
-
-   The rootSLL.pem will expire after 1024 days, so you'll need to repeat this process when it expires.
-   Alternatively, you can set `-days 1024` to a higher number when you run the command.
-
-4. Run this command. It's multi-line so if your terminal asks if you're sure you want to paste it, then say yes.
-   
-   Remember to replace `<WEB_DOMAIN>`
-   
+2. `openssl genrsa -des3 -out rootSSL.key 2048`
+3. `openssl req -x509 -new -nodes -key rootSSL.key -sha256 -days 1024 -out rootSSL.pem`
+4. Tạo key và CSR:
    ```shell
    openssl req \
     -new -sha256 -nodes \
@@ -108,14 +125,7 @@ matter much, so if you're having trouble getting SSL working or don't want to bo
     -newkey rsa:2048 -keyout <WEB_DOMAIN>.key \
     -subj "//C=<2LetterCountryCode>\ST=<StateFullName>\L=<CityFullName>\O=<OrganizationName>\OU=<OrganizationUnitName>\CN=<WEB_DOMAIN>\emailAddress=<EmailAddress>"
    ```
-   Example for the last line:
-   ```
-   -subj "//C=US\ST=Washington\L=Seattle\O=kwwxis\OU=kwwxis\CN=<WEB_DOMAIN>\emailAddress=kwwxis@gmail.com"
-   ```
-5. Run this command.
-   
-   Remember to replace `<WEB_DOMAIN>`
-   
+5. Ký chứng chỉ:
    ```shell
    openssl x509 \
     -req \
@@ -126,155 +136,109 @@ matter much, so if you're having trouble getting SSL working or don't want to bo
     -sha256 \
     -extfile openssl.<WEB_DOMAIN>.cnf
    ```
-6. Edit the `.env` file and set the SSL_KEY and SSL_CERT properties.
-   
-    ```dotenv
-    SSL_KEY=C:/<wherever-you-put-the-files>/<WEB_DOMAIN>.key
-    SSL_CERT=C:/<wherever-you-put-the-files>/<WEB_DOMAIN>.crt
-    SSL_CA=C:/<wherever-you-put-the-files>/rootSSL.pem
-    ```
-7. You'll need to register the `rootSSL.pem` file you created with your Operating System. You can find
-   instructions on how to do that [here](https://reactpaths.com/how-to-get-https-working-in-localhost-development-environment-f17de34af046)
-   in step 3 "*Trust the Certificate Authority CA on your local development machine*".
+6. Trong `.env`: `SSL_ENABLED=true`, `SSL_KEY=.../<WEB_DOMAIN>.key`, `SSL_CERT=.../<WEB_DOMAIN>.crt`, `SSL_CA=.../rootSSL.pem`
+7. Đăng ký `rootSSL.pem` là CA tin cậy trên hệ điều hành.
 
-### No SSL Setup
+</details>
 
-If you don't want to use SSL locally, you can use these settings:
+## Cơ sở dữ liệu
 
-  * No SSL on localhost:
-      ```dotenv
-      VHOST=localhost
-      VHOSTED=0
-      HTTP_PORT=3002
-      SSL_ENABLED=false
-      ```
-      Application would be accessed at http://localhost:3002/
-  * No SSL on custom domain name:
-      ```dotenv
-      VHOST=saccharose.localhost
-      VHOSTED=1
-      HTTP_PORT=80
-      SSL_ENABLED=false
-      ```
-      Application would be accessed at http://saccharose.localhost/
-           
-### Game Data Setup
-       
-You'll need to repeat this step after every new Genshin Impact version.
+Các file SQL nằm trong `src/pipeline/`.
 
-It's recommended you install `tsx` globally with `npm install -g tsx`
+1. **Database site** (tên = `POSTGRES_SITE_DATABASE`):
+   ```sql
+   CREATE DATABASE saccharose;
+   ```
+   Rồi chạy `src/pipeline/PG_SITEDB_SETUP.sql` trên database này.
+   Dòng `CREATE EXTENSION bktree;` cần extension [pg-spgist_hamming](https://github.com/fake-name/pg-spgist_hamming)
+   (chỉ phục vụ tính năng media-search). Nếu không cài extension này, bỏ dòng đó trước khi chạy.
+2. **Database Genshin** (tên = `POSTGRES_GAMEDATA_DATABASE_GENSHIN`):
+   ```sql
+   CREATE DATABASE genshin;
+   ```
+   Rồi chạy lần lượt `src/pipeline/PG_GAMEDATADB_SETUP.sql` và `src/pipeline/PG_GENSHINDATADB_SETUP.sql` trên database này.
+3. **Cấp quyền truy cập:** sau khi đăng nhập Discord, site chỉ cho vào nếu tài khoản đã liên kết một tài khoản
+   Fandom wiki đủ điều kiện (autoconfirmed, ≥ 100 sửa đổi) hoặc có trong bảng bypass. Thêm Discord ID vào bảng bypass
+   trên database site (làm trước hay sau lần đăng nhập đầu tiên đều được):
+   ```sql
+   INSERT INTO site_user_wiki_bypass (discord_id, comment) VALUES ('<discord_id>', 'admin');
+   ```
 
-1.  **Obtain data folders for GI/HSR/ZZZ**
-   
-    * Obtain the GI Data folder and specify the location to it in the `GENSHIN_DATA_ROOT` property of `.env`
-      * The Genshin Data folder should contain these folders: `ExcelBinOutput`, `Readable`, `Subtitle`, `TextMap`.
-          * The `Readable` folder should contain sub-folders where each sub-folder name is `<LangCode>` for each language code.
-          * The `Subtitle` folder should contain sub-folders where each sub-folder name is `<LangCode>` for each language code.
-            Within each language code folder there should be SRT files with the file extension `.txt` or `.srt`
-          * The `TextMap` folder should contain JSON files in the format of `TextMap<LangCode>.json` where `<LangCode>`
-            is one of these: `'CHS', 'CHT', 'DE', 'EN', 'ES', 'FR', 'ID', 'IT', 'JP', 'KR', 'PT', 'RU', 'TH', 'TR', 'VI'`.
-            For example `TextMapCHS.json`.
-      * Also needs the `BinOutput` folder
+## Dữ liệu game (Genshin)
 
-    * Obtain the HSR Data folder and specify the location to it in the `HSR_DATA_ROOT` property of `.env`
-    * Obtain the ZZZ Data folder and specify the location to it in the `ZENLESS_DATA_ROOT` property of `.env`
+Làm lại các bước này sau mỗi phiên bản Genshin mới. Chạy từ thư mục repo.
 
-2.  **Import files (normalize)**
-    
-    * Run with: `npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --normalize`
-    * Run with: `npx tsx ./src/backend/importer/hsr/import_hsr_files.ts --normalize`
-    * Run with: `npx tsx ./src/backend/importer/zenless/import_zenless_files.ts --normalize`
+1. **Lấy thư mục dữ liệu** (git clone bộ dữ liệu AnimeGameData) và trỏ `GENSHIN_DATA_ROOT` tới đó. Thư mục cần có:
+   `ExcelBinOutput`, `BinOutput`, `Readable`, `Subtitle`, `TextMap`.
+   Bộ dữ liệu này đã được giải mã (deobfuscate) sẵn nên **không** cần `--deobf-excel` / `--deobf-bin`.
 
-3.  **Import files (plaintext)**
-    
-    This will create a new folder called Plain at `{DATA_ROOT}/TextMap/Plain` and will fill
-    this folder with files called `PlainTextMap<LangCode>_Hash.dat` and `PlainTextMap<LangCode>_Text.dat`
-    for each language code.<br><br>
-    
-    * Run with: `npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --plaintext`.
-    * Run with: `npx tsx ./src/backend/importer/hsr/import_hsr_files.ts --plaintext`
-    * Run with: `npx tsx ./src/backend/importer/zenless/import_zenless_files.ts --plaintext`
+2. **Normalize** (trước khi import DB):
+   ```shell
+   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --normalize-tm
+   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --normalize-ex
+   ```
+   `--normalize-ex` sẽ gộp `TalkExcelConfigData_0.json`, `_1.json`… thành `TalkExcelConfigData.json`
+   (các file tách được giữ nguyên để không ảnh hưởng `git pull` của thư mục dữ liệu).
 
-4.  **Import files (voice) [genshin only]**
-    
-    This will create or overwrite a file called `VoiceItems.json` in
-    your `GENSHIN_DATA_ROOT` folder.<br><br>
-    
-    * Run with: `npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --voice-items`.
+   > **Không chạy `--make-excels`.** Bước này dựng lại các excel Quest/Talk/Dialog từ `BinOutput` bằng bảng giải mã
+   > không khớp với bộ dữ liệu đang dùng, và sẽ ghi đè các file excel đúng.
 
-5.  **Run import_db for each game**
-   
-    * Run with: `npx tsx ./src/backend/importer/import_db.ts`.
-        * Use the `--help` flag to see all the options
-        * Use the `--game` flag with one of these values: `genshin`, `hsr`, `zenless`
-        * You can use `--run-all` to first time you run it
-        * Other options such as `--run-only` can regenerate specific tables on the existing database
+3. **Các file hỗ trợ khác** (trước khi import DB):
+   ```shell
+   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --plaintext
+   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --voice-items
+   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --gcg-skill
+   ```
+   - `--plaintext`: tạo `TextMap/Plain/PlainTextMap<LangCode>_Hash.dat` và `_Text.dat`.
+   - `--voice-items`: tạo `VoiceItems.json` từ `BinOutput/Voice/Items`.
+   - `--gcg-skill`: tạo `GCGCharSkillDamage.json` từ `BinOutput/GCG/Gcg_DeclaredValueSet` (cần cho trang TCG).
 
-6.  **Import files (index)**
-    
-    There are various other files to import after importing the database.
-    
-    * `npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --index`
-    * `npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --gcg-skill`
-    * `npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --voice-overs`
-    
-## Development
+   Mỗi lần chạy chỉ được truyền một cờ.
 
-### Build and run
+4. **Import vào PostgreSQL:**
+   ```shell
+   npx tsx ./src/backend/importer/import_db.ts --game genshin --run-all-except DialogUnparentedExcelConfigData,CodexQuestExcelConfigData,FurnitureSuiteUnitsExcelConfigData
+   ```
+   Ba bảng bị loại trừ chỉ có dữ liệu khi chạy `--make-excels`; nếu dùng `--run-all` thì import sẽ dừng vì thiếu file.
+   Dùng `--help` để xem các tùy chọn khác (ví dụ `--run-only <bảng>` để import lại một vài bảng).
 
- * Run `npm run build:dev` then `npm run start` to build and run the application.
-    * For production build, use `npm run build:prod` instead.
- * Note that `build:dev/prod` builds both the frontend and backend.
-    * To build just the backend, run `npm run backend:build`
-    * To build just the frontend, run `npm run webpack:dev` or `npm run webpack:prod`
+5. **Sau khi import DB:**
+   ```shell
+   npx tsx ./src/backend/importer/genshin/import_genshin_files.ts --index
+   ```
+   Tạo bảng `textmap_search_index` phục vụ tìm kiếm.
 
-### Live Reloading
+   Tùy chọn: `--changelog-tm <version>` rồi `--changelog-ex <version>` để trang TCG điền được phiên bản ở mục
+   "Lịch Sử Cập Nhật" (nếu không, mục này hiện `<!-- phiên bản -->`).
 
-While developing, you'll want to use live reloading. This will watch for file changes and
-automatically reload  the code as you're developing. This is much faster than running
-`npm run build:dev` and `npm run start` every time you make a code change.
+## Ảnh
 
- * Run `npm run ts-serve:dev` to start the backend with live-reloading.
- * Run `npm run rspack:dev:watch` to start the frontend with live-reloading.
+Ảnh Genshin được phục vụ từ thư mục `EXT_GENSHIN_IMAGES` (bắt buộc khai báo) tại URL `/images/genshin`.
+Thiếu ảnh thì app vẫn chạy nhưng một số chỗ sẽ bị vỡ ảnh.
 
-It doesn't matter which order you run those two commands in.
+Chép vào thư mục đó các file trong `Texture2D` bắt đầu bằng `UI_`, `Eff_`, `Skill_`, `MonsterSkill`, và các file trong
+`Sprite` bắt đầu bằng `UI_Gcg_Dice`, `UI_Gcg_Buff`, `UI_Gcg_Tag`, `UI_Buff`, `UI_HomeWorldTabIcon`:
 
-### Structure
+```shell
+find ./Texture2D/ -type f -regextype posix-extended -iregex '.*/(UI_|MonsterSkill|Eff_UI_Talent|.*Tutorial).*' -exec cp '{}' dist ';'
+find ./Sprite/ -type f -regextype posix-extended -iregex '.*/(UI_Buff|UI_Gcg_Dice|UI_Gcg_Buff|UI_Gcg_Tag|UI_HomeWorldTabIcon).*' -exec cp '{}' dist ';'
+rsync -avP ./dist hostname:/dest/path
+```
 
-* `/dist` - build output for backend (gitignored folder)
-* `/public/dist` - build output for frontend (gitignored folder)
-* `/src/backend` - backend code
-* `/src/frontend` - frontend code
-* `/src/shared` - shared code used by both frontend and backend code. The frontend and backend folders should
-  not share code between each other. Any shared code should go in `./src/shared`
-  
-## Genshin Images
+## Build và chạy
 
-You'll want to create the `public/images/genshin` folder and add the images matching these conditions.
+- Build: `npm run build:dev` (hoặc `npm run build:prod`), rồi chạy `npm run start`.
+  - Chỉ backend: `npm run backend:build`
+  - Chỉ frontend: `npm run rspack:dev` hoặc `npm run rspack:prod`
+- Phát triển với live-reload (chạy song song, thứ tự không quan trọng):
+  - Backend: `npm run ts-serve:dev`
+  - Frontend: `npm run rspack:dev:watch`
 
-All files in `Texture2D` starting with:
-- `UI_`
-- `Eff_`
-- `Skill_`
-- `MonsterSkill`
+### Cấu trúc
 
-All files in `Sprite` starting with:
-- `UI_Gcg_Dice`
-- `UI_Gcg_Buff`
-- `UI_Gcg_Tag`
-- `UI_Buff`
-- `UI_HomeWorldTabIcon`
-
-Having these images isn't necessary for the application to run, but you'll have a bunch of broken images without them
-in certain areas of the UI. If you don't know where to get these images, you can ask for them in the "Saccharose.wiki"
-Discord editing forums post.
-
-**Commands:**
-
-- **Print Texture2D:** `find ./Texture2D/ -type f -regextype posix-extended -iregex '.*/(UI_|MonsterSkill|Eff_UI_Talent|.*Tutorial).*'`<br><br>
-
-- **Copy Texture2D:**  `find ./Texture2D/ -type f -regextype posix-extended -iregex '.*/(UI_|MonsterSkill|Eff_UI_Talent|.*Tutorial).*' -exec cp '{}' dist ';'`<br><br>
-
-- **Copy Sprite:** `find ./Sprite/ -type f -regextype posix-extended -iregex '.*/(UI_Buff|UI_Gcg_Dice|UI_Gcg_Buff|UI_Gcg_Tag|UI_HomeWorldTabIcon).*' -exec cp '{}' dist ';'`
-
-- **Transfer:**: `rsync -avP ./dist hostname:/dest/path`
+- `/dist` – output build backend (gitignored)
+- `/public/dist` – output build frontend (gitignored)
+- `/src/backend` – code backend
+- `/src/frontend` – code frontend
+- `/src/shared` – code dùng chung cho cả frontend và backend
+- `/src/pipeline` – script build và file SQL khởi tạo database
