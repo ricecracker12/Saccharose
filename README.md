@@ -179,43 +179,52 @@ Schema của Saccharose dùng **tên trường của bản 5.4**. Dữ liệu c�
 Không dùng trực tiếp thư mục git clone làm `GENSHIN_DATA_ROOT`, vì các bước dưới đây ghi đè `ExcelBinOutput` và
 `BinOutput`. Ví dụ bố trí (trên VPS):
 
+Dùng hai kho dữ liệu của Dimbreath:
+- `animegamedata2` (https://gitlab.com/Dimbreath/animegamedata2): dữ liệu **bản mới nhất**, lịch sử chỉ từ 6.7.
+- `AnimeGameData` (kho cũ): chỉ dùng để trích **bản 5.4** làm mẫu; không cần cập nhật.
+
 ```
-~/sucrose/AnimeGameData/     git clone bộ dữ liệu (bản mới nhất, lịch sử có bản 5.4)
+~/sucrose/animegamedata2/    git clone kho mới (dữ liệu thô bản mới nhất)
+~/sucrose/AnimeGameData/     git clone kho cũ (lịch sử có bản 5.4)
 ~/sucrose/archives/          GENSHIN_ARCHIVES
-    5.4/ExcelBinOutput/      trích từ commit 5.4
-    5.4/BinOutput/...        trích từ commit 5.4
+    5.4/ExcelBinOutput/      trích từ commit 5.4 của kho cũ
+    5.4/BinOutput/...        trích từ commit 5.4 của kho cũ
 ~/sucrose/genshin-data/      GENSHIN_DATA_ROOT (thư mục làm việc)
-    ExcelBinOutput.Raw  ->   symlink tới AnimeGameData/ExcelBinOutput
-    BinOutput.Raw       ->   symlink tới AnimeGameData/BinOutput
-    Readable, Subtitle  ->   symlink tới AnimeGameData/...
-    TextMap/                 bản sao (normalize-tm ghi file vào đây)
+    ExcelBinOutput.Raw  ->   symlink tới animegamedata2/ExcelBinOutput
+    BinOutput.Raw       ->   symlink tới animegamedata2/BinOutput
+    Readable, Subtitle  ->   symlink tới animegamedata2/...
+    TextMap/                 bản sao từ animegamedata2 (normalize-tm ghi file vào đây)
     ExcelBinOutput/, BinOutput/   do các bước deobf / make-excels sinh ra
 ```
 
-1. **Chuẩn bị bản 5.4 và thư mục làm việc** (chỉ cần làm lần đầu, trừ bước cập nhật TextMap).
-
-   Nếu kho có bản 5.4 (kho cũ `AnimeGameData`) không cập nhật tới phiên bản mới nhất, dùng hai kho: kho cũ chỉ để
-   trích bản 5.4, còn dữ liệu thô bản mới lấy từ kho mới (`animegamedata2`), thay đường dẫn tương ứng ở các lệnh `ln` bên dưới.
+1. **Chuẩn bị bản 5.4 và thư mục làm việc** (chỉ cần làm lần đầu).
    ```shell
-   cd ~/sucrose/AnimeGameData
-   git log --oneline | grep -E "5\.4\."        # chọn commit 5.4 mới nhất, ví dụ abc1234
+   # Trích bản 5.4 từ kho cũ (lấy commit 5.4 mới nhất)
+   C54=$(git -C ~/sucrose/AnimeGameData log --format=%h -E --grep='5\.4\.' | head -1)
+   git -C ~/sucrose/AnimeGameData log -1 --oneline "$C54"    # kiểm tra đúng commit 5.4
    mkdir -p ~/sucrose/archives/5.4
-   git archive abc1234 ExcelBinOutput BinOutput/Quest BinOutput/Talk BinOutput/Voice/Items BinOutput/InterAction/QuestDialogue \
+   git -C ~/sucrose/AnimeGameData archive "$C54" ExcelBinOutput BinOutput/Quest BinOutput/Talk BinOutput/Voice/Items BinOutput/InterAction/QuestDialogue \
      | tar -x -C ~/sucrose/archives/5.4
 
+   # Thư mục làm việc, trỏ tới kho mới
    mkdir -p ~/sucrose/genshin-data && cd ~/sucrose/genshin-data
-   ln -sfn ~/sucrose/AnimeGameData/ExcelBinOutput ExcelBinOutput.Raw
-   ln -sfn ~/sucrose/AnimeGameData/BinOutput      BinOutput.Raw
-   ln -sfn ~/sucrose/AnimeGameData/Readable       Readable
-   ln -sfn ~/sucrose/AnimeGameData/Subtitle       Subtitle
-   rm -rf TextMap && cp -r ~/sucrose/AnimeGameData/TextMap TextMap   # làm lại sau mỗi lần cập nhật dữ liệu
+   ln -sfn ~/sucrose/animegamedata2/ExcelBinOutput ExcelBinOutput.Raw
+   ln -sfn ~/sucrose/animegamedata2/BinOutput      BinOutput.Raw
+   ln -sfn ~/sucrose/animegamedata2/Readable       Readable
+   ln -sfn ~/sucrose/animegamedata2/Subtitle       Subtitle
+   rm -rf TextMap && cp -r ~/sucrose/animegamedata2/TextMap TextMap
    ```
    Trong `.env`:
    ```dotenv
    GENSHIN_DATA_ROOT=/home/ubuntu/sucrose/genshin-data
    GENSHIN_ARCHIVES=/home/ubuntu/sucrose/archives
    ```
-   Cập nhật dữ liệu game mới: `git -C ~/sucrose/AnimeGameData pull`, chép lại `TextMap`, rồi chạy tiếp từ bước 2.
+   Khi có phiên bản game mới:
+   ```shell
+   git -C ~/sucrose/animegamedata2 pull
+   cd ~/sucrose/genshin-data && rm -rf TextMap && cp -r ~/sucrose/animegamedata2/TextMap TextMap
+   ```
+   rồi chạy tiếp từ bước 2.
 
 2. **Giải mã và dựng excel** (trước khi import DB, đúng thứ tự):
    ```shell
