@@ -2,10 +2,7 @@ import passport_discord from 'passport-discord';
 import { LangCode } from '../lang-types.ts';
 import { SearchMode } from '../../util/searchUtil.ts';
 import {
-  GenshinSiteModeBasePath,
   SiteMode, SiteModeBasePathMap,
-  StarRailSiteModeBasePath, WuwaSiteModeBasePath,
-  ZenlessSiteModeBasePath,
 } from './site-mode-type.ts';
 
 export const VisitorPrefsCookieName = 'VisitorUserPrefs';
@@ -23,7 +20,10 @@ export type SiteUser = {
   wiki_avatar?: string,
   wiki_allowed?: boolean,
 
-  prefs: SiteUserPrefs
+  prefs: SiteUserPrefs,
+
+  // Transient/computed field - not persisted to `json_data`, always recomputed by SiteUserProvider#find:
+  is_banned?: boolean,
 };
 
 export type SiteUserPrefs = {
@@ -38,8 +38,6 @@ export type SiteUserPrefs = {
   ol_includeHeader?: boolean,
 
   voPrefixDisabledLangs?: LangCode[],
-
-  dbotSiteMode?: SiteMode,
 
   preferredBasePaths?: SiteUserPrefsPreferredBasePaths,
 };

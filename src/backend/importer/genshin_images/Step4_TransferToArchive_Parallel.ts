@@ -11,20 +11,29 @@ const __dirname = path.dirname(__filename);
 
 const combinedDir = "E:/GameDataAssets/GenshinAssets/Texture2D/";
 const sourceDir = "C:/HoyoTools/AnimeStudio/GI_OutputFiles";
-const targetDir = "E:/GameDataAssets/GenshinAssets/Texture2D_Archive/Texture2D_6.5";
+const targetDir = "E:/GameDataAssets/GenshinAssets/Texture2D_Archive/Texture2D_7.1";
 const NUM_WORKERS = Math.max(1, os.cpus().length - 1);
 
 sharp.cache(false);
 
 async function runMain() {
-  const files: string[] = [];
-  for (let file of fsWalkSync(sourceDir)) {
-    files.push(file.replace(/\\/g, "/"));
+  const existingTargetNames = new Set<string>();
+  for (let file of fsWalkSync(targetDir)) {
+    existingTargetNames.add(path.basename(file));
   }
+  console.log(`Found ${existingTargetNames.size} existing files in target dir.`);
+
+  const allFiles: string[] = [];
+  for (let file of fsWalkSync(sourceDir)) {
+    allFiles.push(file.replace(/\\/g, "/"));
+  }
+
+  const files = allFiles.filter((file) => !existingTargetNames.has(path.basename(file)));
+  const skipped = allFiles.length - files.length;
 
   const total = files.length;
   let completed = 0;
-  console.log(`Found ${total} files. Using ${NUM_WORKERS} workers.`);
+  console.log(`Found ${allFiles.length} source files, skipping ${skipped} already in target dir. Processing ${total}. Using ${NUM_WORKERS} workers.`);
 
   const queue = [...files];
 

@@ -2,7 +2,7 @@ import '../../../loadenv.ts';
 import { closeKnex } from '../../../util/db.ts';
 import { GenshinControl, getGenshinControl } from '../genshinControl.ts';
 import { isInt, maybeInt } from '../../../../shared/util/numberUtil.ts';
-import { ReminderExcelConfigData } from '../../../../shared/types/genshin/dialogue-types.ts';
+import { ReminderExcelConfigData, TalkRoleType } from '../../../../shared/types/genshin/dialogue-types.ts';
 import { MetaProp } from '../../../util/metaProp.ts';
 import { pathToFileURL } from 'url';
 import { TextMapHash } from '../../../../shared/types/lang-types.ts';
@@ -11,45 +11,32 @@ import { escapeRegExp } from '../../../../shared/util/stringUtil.ts';
 import { sort } from '../../../../shared/util/arrayUtil.ts';
 import { DialogueSectionResult } from '../../../util/dialogueSectionResult.ts';
 import { DialogWikitextResult } from '../../../../shared/types/common-types.ts';
+import { GameVersion } from '../../../../shared/types/game-versions.ts';
 
-export async function reminderGenerateAll(ctrl: GenshinControl): Promise<DialogueSectionResult[]> {
+export async function reminderGenerateAll(ctrl: GenshinControl, version: GameVersion): Promise<DialogueSectionResult[]> {
   return ctrl.cached('RemindersAll:' + ctrl.outputLangCode, 'memory', async () => {
     const context = new ReminderGenerationContext(ctrl, true);
-    const allReminders = await ctrl.selectAllReminders();
+    const allReminders = await ctrl.selectAllRemindersAddedInVersion(version.number);
     context.addPreloadedSource(allReminders);
 
     for (let reminder of allReminders) {
       await context.handleChain(reminder, 0);
     }
 
-    const groupedByVersion: Record<string, DialogueSectionResult> = {};
-
-    const uncategorized = new DialogueSectionResult('ReminderGroup_Uncategorized', 'Uncategorized');
-
-    for (let result of context.results) {
-      const version = result.extraData.addedInVersion;
-      if (version) {
-        if (!groupedByVersion[version]) {
-          groupedByVersion[version] = new DialogueSectionResult(
-            'ReminderGroup_Version_' + version.replace(/\./g, '_'),
-            version
-          );
-        }
-
-        groupedByVersion[version].children.push(result);
-      } else {
-        uncategorized.children.push(result);
-      }
-    }
-
-    return [uncategorized, ... sort(Object.entries(groupedByVersion), '0').map(([k, v]) => v)];
+    return context.results;
   });
 }
 
 
 export function reminderWikitext(ctrl: GenshinControl, reminder: ReminderExcelConfigData): DialogWikitextResult {
   const text: string = ctrl.normText(reminder.ContentText, ctrl.outputLangCode);
-  const voPrefix: string = ctrl.voice.getVoPrefix('Reminder', reminder.Id, text);
+
+  let talkRoleType: TalkRoleType;
+  if (reminder.SpeakerText === '#{NICKNAME}') {
+    talkRoleType = 'TALK_ROLE_PLAYER';
+  }
+
+  const voPrefix: string = ctrl.voice.getVoPrefix('Reminder', reminder.Id, text, talkRoleType);
 
   if (!reminder.SpeakerText) {
     return {
@@ -115,15 +102,26 @@ class ReminderGenerationContext {
     if (!reminder) {
       return reminder;
     }
+
+    const seen: Map<number, ReminderExcelConfigData> = new Map();
+
     while (true) {
-      const previous = this.preloadedNextToPrevious[reminder.Id]
+      const previous: ReminderExcelConfigData = this.preloadedNextToPrevious[reminder.Id]
         || (this.onlyUsePreloadedSources ? null : await this.ctrl.selectPreviousReminder(reminder.Id));
+
       if (previous && previous.Id !== reminder.Id) {
+        if (seen.has(previous.Id)) {
+          // If there's a circular reference, then prefer the one with the lowest ID
+          reminder = seen.get(Math.min(... Array.from(seen.keys())));
+          break;
+        }
         reminder = previous;
+        seen.set(reminder.Id, reminder);
       } else {
         break;
       }
     }
+
     return reminder;
   }
 

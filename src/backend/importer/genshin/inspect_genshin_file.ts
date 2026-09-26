@@ -31,7 +31,7 @@ const presets = {
   FetterStoryExcelConfigData: <InspectOpt> { file: excel('FetterStoryExcelConfigData'), inspectFieldValues: [
     'OpenConds[#ALL].CondType', 'FinishConds[#ALL].CondType'] },
   FetterInfoExcelConfigData: <InspectOpt> { file: excel('FetterInfoExcelConfigData'), inspectFieldValues: ['AvatarAssocType', 'OpenConds[#ALL].CondType', 'FinishConds[#ALL].CondType'] },
-  LocalizationExcelConfigData: <InspectOpt> { file: excel('LocalizationExcelConfigData'), inspectFieldValues: ['AssetType'] },
+  LocalizationExcelConfigData: <InspectOpt> { file: excel('LocalizationExcelConfigData'), inspectFieldValues: [] },
   TalkExcelConfigData: <InspectOpt> { file: excel('TalkExcelConfigData'), inspectFieldValues: [
     'BeginCond[#ALL].Type', 'BeginCondComb', 'FinishExec[#ALL].Type', 'HeroTalk', 'LoadType', 'TalkMarkType', 'TalkType', 'TalkBinType', 'TalkRole.Type'
     ] },
@@ -69,7 +69,7 @@ const presets = {
       return record.GivingMethod === 'GIVING_METHOD_EXACT';
   },},
   GivingGroupExcelConfigData: <InspectOpt> { file: excel('GivingGroupExcelConfigData'), inspectFieldValues: [] },
-  DocumentExcelConfigData: <InspectOpt> { file: excel('DocumentExcelConfigData'), inspectFieldValues: ['DocumentType', 'SplitType'] },
+  DocumentExcelConfigData: <InspectOpt> { file: excel('DocumentExcelConfigData'), inspectFieldValues: ['DocumentType', 'SplitType', 'PreviewPath'] },
   NpcExcelConfigData: <InspectOpt> { file: excel('NpcExcelConfigData'), inspectFieldValues: ['BodyType', 'SpecialType', 'BillboardType', 'ElementName', 'ElementType']},
   NpcFirstMetExcelConfigData: <InspectOpt> { file: excel('NpcFirstMetExcelConfigData'), inspectFieldValues: ['NpcType', 'CostElemType']},
 
@@ -84,6 +84,9 @@ const presets = {
 
   BeyondCostumeExcelConfigData: <InspectOpt> { file: excel('BeyondCostumeExcelConfigData'), inspectFieldValues: ['ColorScheme[#ALL]', 'EOJEBBEGFBI', 'ComponentSlot1[#ALL].ComponentSlot2[#ALL]', 'IFNNDCKNDCO[#ALL]', 'Rarity', 'BodyType[#ALL]'] },
   BeyondCostumeSuitExcelConfigData: <InspectOpt> { file: excel('BeyondCostumeSuitExcelConfigData'), inspectFieldValues: ['ColorScheme[#ALL]', 'BEEKCGDOFEI', 'DMKFPGJLKFE', 'Rarity', 'BodyType[#ALL]', 'ShowType'] },
+
+  FurnitureSuiteUnitsExcelConfigData: <InspectOpt> { file: excel('FurnitureSuiteUnitsExcelConfigData'), inspectFieldValues: [] },
+
 };
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -91,7 +94,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     const ctrl = getGenshinControl();
     // await inspectDataFile(ctrl, presets.QuestExcelConfigData);
     // await inspectDataFile(ctrl, presets.TalkExcelConfigData);
-    await inspectDataFile(ctrl, presets.BeyondCostumeSuitExcelConfigData);
+    await inspectDataFile(ctrl, presets.FurnitureSuiteUnitsExcelConfigData);
     await closeKnex();
   })();
 }

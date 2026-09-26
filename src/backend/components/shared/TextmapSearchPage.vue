@@ -1,6 +1,20 @@
 <template>
   <section class="card">
-    <h2>TextMap Search</h2>
+    <h2 class="valign">
+      <span>TextMap Search</span>
+      <span class="grow"></span>
+      <div class="posRel" v-if="supportedLangCodes">
+        <button class="secondary small valign" ui-action="dropdown" style="padding-right:4px">
+          Download <Icon name="chevron-down" class="spacer5-left" :size="16" />
+        </button>
+        <div class="ui-dropdown">
+          <div v-for="langCode of supportedLangCodes"
+               class="option textmap-download-trigger"
+               ui-action="dropdown-item"
+               :data-lang="langCode">{{ ctx.languages[langCode] }} ({{ langCode }})</div>
+        </div>
+      </div>
+    </h2>
     <div class="content form-box">
       <p class="spacer10-bottom">Enter any arbitrary text and search for it in the TextMap, returning the full TextMap
         item that the text was found in (up to 100 search results).</p>
@@ -50,8 +64,13 @@
 <script setup lang="ts">
 import SearchModeInput from '../utility/SearchModeInput.vue';
 import Icon from '../utility/Icon.vue';
+import { LangCode } from '../../../shared/types/lang-types.ts';
+import { useTrace } from '../../middleware/request/tracer.ts';
+
+const { ctx } = useTrace();
 
 defineProps<{
   versionFilterMoreInfo?: string,
+  supportedLangCodes?: LangCode[],
 }>()
 </script>

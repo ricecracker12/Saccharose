@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { create } from '../../../routing/router.ts';
+import { create } from '../../../rendering/customRouter.ts';
 import ChangelogListPage from '../../../components/changelogs/ChangelogListPage.vue';
 import { GenshinVersions } from '../../../../shared/types/game-versions.ts';
 import GenshinChangelogSummaryPage from '../../../components/changelogs/GenshinChangelogSummaryPage.vue';
@@ -89,7 +89,7 @@ export default async function(): Promise<Router> {
       true
     );
 
-    const activeTab = queryTab(req, 'added', 'updated', 'removed');
+    const activeTab = queryTab(req, 'added', 'updated', 'removed', 'superseded');
 
     await res.renderComponent(ChangelogTextMapPage, {
       title: 'Genshin TextMap Diff ' + gameVersion.displayLabel,

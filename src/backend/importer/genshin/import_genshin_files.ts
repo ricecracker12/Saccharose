@@ -12,9 +12,13 @@ import { importVoiceItems } from './module.voice-items.ts';
 import { writeDeobfExcels } from './module.deobf-excel.ts';
 import { importVoiceOvers } from './module.voice-overs.ts';
 import { importSearchIndex } from './module.search-index.ts';
-import { generateAvatarAnimInteractionGoodBad, generateQuestDialogExcels } from './module.make-excels.ts';
+import {
+  generateAvatarAnimInteractionGoodBad,
+  generateHomeWorldFurnitureSuitExcel,
+  generateQuestDialogExcels,
+} from './module.make-excels.ts';
 import { loadInterActionQD } from './module.interaction.ts';
-import { createChangelog } from '../util/createChangelogUtil.ts';
+import { createChangelog, doChangelogMiscBackfill } from '../util/changelog/createChangelogUtil.ts';
 import { indexGenshinImages } from './module.index-images.ts';
 import { exportExcel } from './module.export-excel.ts';
 import { recordNewGenshinImages } from './module.new-images.ts';
@@ -22,7 +26,6 @@ import fs from 'fs';
 import { writeDeobfBin } from './module.deobf-bin.ts';
 import { isInt } from '../../../shared/util/numberUtil.ts';
 import { genshinNormalize } from './module.normalize.ts';
-import { genshinSchema } from './genshin.schema.ts';
 import { isset } from '../../../shared/util/genericUtil.ts';
 import { importGenshinReadableChanges } from '../../domain/genshin/readables/genshinReadableChanges.ts';
 import { doImportExcelScalars } from '../util/excel_usages_importer.ts';
@@ -34,7 +37,8 @@ export async function importGenshinFilesCli() {
     {name: 'deobf-excel', type: Boolean, description: 'Deobfuscate Excels.'},
     {name: 'deobf-bin', type: Boolean, description: 'Deobfuscate BinOutput.'},
     {name: 'make-excels', type: Boolean, description: 'Creates some of the excels that are no longer updated by the game client (run before normalize)'},
-    {name: 'normalize', type: Boolean, description: 'Normalizes the JSON files.'},
+    {name: 'normalize-tm', type: Boolean, description: 'Normalizes the TextMap JSON files.'},
+    {name: 'normalize-ex', type: Boolean, description: 'Normalizes the Excel JSON files.'},
     {name: 'plaintext', type: Boolean, description: 'Creates the PlainTextMap files.'},
     {name: 'voice-items', type: Boolean, description: 'Creates the normalized voice items file.'},
     {name: 'interaction', type: Boolean, description: 'Load QuestDialogue InterActions from BinOutput.'},
@@ -63,6 +67,7 @@ export async function importGenshinFilesCli() {
     {name: 'export-excel', type: String, typeLabel: '<outputDir>', description: 'Copies excel files to output directory with renameFields applied.'},
     {name: 'help', type: Boolean, description: 'Display this usage guide.'},
     {name: 'avatar-anim-interaction', type: Boolean},
+    {name: 'changelog-misc-backfill', type: Boolean, description: 'Misc backfill'},
   ];
 
   let options: commandLineArgs.CommandLineOptions;
@@ -114,8 +119,11 @@ export async function importGenshinFilesCli() {
     return;
   }
 
-  if (options.normalize) {
-    await genshinNormalize();
+  if (options['normalize-tm']) {
+    await genshinNormalize('textmap');
+  }
+  if (options['normalize-ex']) {
+    await genshinNormalize('excel');
   }
   if (options.plaintext) {
     const ctrl = getGenshinControl();
@@ -179,6 +187,7 @@ export async function importGenshinFilesCli() {
   }
   if (options['make-excels']) {
     await generateQuestDialogExcels(getGenshinDataFilePath());
+    await generateHomeWorldFurnitureSuitExcel(getGenshinDataFilePath());
   }
   if (options['avatar-anim-interaction']) {
     await generateAvatarAnimInteractionGoodBad(getGenshinDataFilePath());
@@ -194,6 +203,9 @@ export async function importGenshinFilesCli() {
   }
   if (options['changelog-rd']) {
     await importGenshinReadableChanges(getGenshinControl(), options['changelog-rd']);
+  }
+  if (options['changelog-misc-backfill']) {
+    await doChangelogMiscBackfill(getGenshinControl());
   }
   if (options['excel-scalars']) {
     await doImportExcelScalars(getGenshinControl());

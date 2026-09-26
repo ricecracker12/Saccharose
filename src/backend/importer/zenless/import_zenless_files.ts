@@ -11,7 +11,7 @@ import { importPlainTextMap } from '../util/import_file_util.ts';
 import { getZenlessControl } from '../../domain/zenless/zenlessControl.ts';
 import { generateDialogueNodes } from './module.dialogue-nodes.ts';
 import { zenlessNormalize } from './module.normalize.ts';
-import { createChangelog } from '../util/createChangelogUtil.ts';
+import { createChangelog, doChangelogMiscBackfill } from '../util/changelog/createChangelogUtil.ts';
 import { doImportExcelScalars } from '../util/excel_usages_importer.ts';
 
 export async function importZenlessFilesCli() {
@@ -34,6 +34,7 @@ export async function importZenlessFilesCli() {
 
   const options_util: (ArgsOptionDefinition & UsageOptionDefinition)[] = [
     {name: 'help', type: Boolean, description: 'Display this usage guide.'},
+    {name: 'changelog-misc-backfill', type: Boolean, description: 'Misc backfill'},
   ];
 
   let options: commandLineArgs.CommandLineOptions;
@@ -100,6 +101,9 @@ export async function importZenlessFilesCli() {
   }
   if (options['changelog-ex']) {
     await createChangelog(getZenlessControl(), options['changelog-ex'], 'excel');
+  }
+  if (options['changelog-misc-backfill']) {
+    await doChangelogMiscBackfill(getZenlessControl());
   }
   if (options['excel-scalars']) {
     await doImportExcelScalars(getZenlessControl());

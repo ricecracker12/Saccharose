@@ -3,7 +3,7 @@ import { AvatarConfig } from '../../../shared/types/hsr/hsr-avatar-types.ts';
 import jsonMask from 'json-mask';
 import { Request } from 'express';
 import { isInt, toInt } from '../../../shared/util/numberUtil.ts';
-import { isString } from '../../../shared/util/stringUtil.ts';
+import { isString, toString } from '../../../shared/util/stringUtil.ts';
 
 const avatarMaskProps: string =
   'Id,' +
@@ -44,7 +44,7 @@ export async function getStarRailAvatar(ctrl: StarRailControl, req: Request): Pr
   const avatars = await getStarRailAvatars(ctrl);
 
   const arg: string|number = ['avatarId', 'avatarName', 'avatar', 'id']
-    .map(key => String(req.params[key] || req.query[key])).find(val => !!val);
+    .map(key => toString(req.params[key] || req.query[key])).find(val => !!val);
 
   if (!arg) {
     return null;
@@ -60,7 +60,7 @@ export async function getStarRailAvatar(ctrl: StarRailControl, req: Request): Pr
         const langCodeMap = await ctrl.createLangCodeMap(avatar.NameTextMapHash, false);
         for (let name of Object.values(langCodeMap)) {
           if (nameCmp === name?.toLowerCase()) {
-            req.context.htmlMetaProps['X-ReplaceInUrl'] = arg + ';' + avatar.NameText;
+            req.context.setHtmlMetaProp('X-ReplaceInUrl', arg + ';' + avatar.NameText);
             return avatar;
           }
         }

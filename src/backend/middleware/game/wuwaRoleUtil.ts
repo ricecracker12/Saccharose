@@ -1,7 +1,7 @@
 import jsonMask from 'json-mask';
 import { Request } from 'express';
 import { isInt, toInt } from '../../../shared/util/numberUtil.ts';
-import { isString } from '../../../shared/util/stringUtil.ts';
+import { isString, toString } from '../../../shared/util/stringUtil.ts';
 import { WuwaControl } from '../../domain/wuwa/wuwaControl.ts';
 import { RoleInfo } from '../../../shared/types/wuwa/role-types.ts';
 
@@ -44,7 +44,7 @@ export async function getWuwaRole(ctrl: WuwaControl, req: Request): Promise<Role
   const roles = await getWuwaRoles(ctrl);
 
   const arg: string|number = ['roleId', 'roleName', 'name', 'role', 'id']
-    .map(key => String(req.params[key] || req.query[key])).find(val => !!val);
+    .map(key => toString(req.params[key] || req.query[key])).find(val => !!val);
 
   if (!arg) {
     return null;
@@ -60,7 +60,7 @@ export async function getWuwaRole(ctrl: WuwaControl, req: Request): Promise<Role
         const langCodeMap = await ctrl.createLangCodeMap(role.Name, false);
         for (let name of Object.values(langCodeMap)) {
           if (nameCmp === name?.toLowerCase()) {
-            req.context.htmlMetaProps['X-ReplaceInUrl'] = arg + ';' + role.NameText;
+            req.context.setHtmlMetaProp('X-ReplaceInUrl', arg + ';' + role.NameText);
             return role;
           }
         }

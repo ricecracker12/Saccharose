@@ -1,9 +1,8 @@
 <template>
-  <div v-if="noLink || !itemLink" class="material-item" :class="{ 'no-name': noName, 'small': small }">
+  <div v-if="noLink || !itemLink" :class="cssClasses">
     <GenshinItemInner v-bind="props" />
   </div>
-  <a v-else class="material-item" :class="{ 'no-name': noName, 'small': small }"
-     :href="`/genshin/${itemLink}/${item.Id}`">
+  <a v-else :class="cssClasses" :href="`/genshin/${itemLink}/${item.Id}`">
     <GenshinItemInner v-bind="props" />
   </a>
 </template>
@@ -14,30 +13,63 @@ import { WeaponExcelConfigData } from '../../../../shared/types/genshin/weapon-t
 import { HomeWorldFurnitureExcelConfigData } from '../../../../shared/types/genshin/homeworld-types.ts';
 import { ReliquaryExcelConfigData } from '../../../../shared/types/genshin/artifact-types.ts';
 import GenshinItemInner from './GenshinItemInner.vue';
-import { BydMaterialExcelConfigData } from '../../../../shared/types/genshin/beyond-types.ts';
+import {
+  BeyondCostumeExcelConfigData, BeyondCostumeSuitExcelConfigData,
+  BydMaterialExcelConfigData, isBeyondCostume, isBeyondCostumeSuit,
+} from '../../../../shared/types/genshin/beyond-types.ts';
 import { AvatarExcelConfigData, isAvatar } from '../../../../shared/types/genshin/avatar-types.ts';
 
 export type GenshinItemComponentProps = {
-  item?: MaterialExcelConfigData|WeaponExcelConfigData|HomeWorldFurnitureExcelConfigData|ReliquaryExcelConfigData|BydMaterialExcelConfigData|AvatarExcelConfigData,
+  item?: MaterialExcelConfigData|WeaponExcelConfigData|HomeWorldFurnitureExcelConfigData|ReliquaryExcelConfigData
+    |BydMaterialExcelConfigData|AvatarExcelConfigData|BeyondCostumeExcelConfigData|BeyondCostumeSuitExcelConfigData,
   itemCount?: number,
   noCount?: boolean,
   noLink?: boolean,
   noName?: boolean,
   small?: boolean,
+  class?: string|string[]|Record<string, boolean>,
 };
 
 const props = defineProps<GenshinItemComponentProps>();
 const { item } = props;
 
-const itemLink = isAvatar(item)
-  ? null
-  : (
-    (item.ItemType === 'ITEM_WEAPON' ? 'weapons' : '') ||
-    (item.ItemType === 'ITEM_FURNITURE' ? 'furnishings' : '') ||
-    (item.ItemType === 'ITEM_RELIQUARY' ? 'artifacts' : '') ||
-    (item.ItemType === 'ITEM_BEYOND_MATERIAL' ? 'byd/items' : '') ||
-    (item.ItemType === 'ITEM_BEYOND_MATERIAL' ? 'byd/items' : '') ||
-    'items'
-  );
+const itemLink = (() => {
+  if (!item) {
+    return null;
+  } else if (isAvatar(item)) {
+    return null;
+  } else if (isBeyondCostume(item)) {
+    return 'byd/costumes';
+  } else if (isBeyondCostumeSuit(item)) {
+    return 'byd/costume-suits';
+  } else if (item.ItemType === 'ITEM_WEAPON') {
+    return 'weapons';
+  } else if (item.ItemType === 'ITEM_FURNITURE') {
+    return 'furnishings';
+  } else if (item.ItemType === 'ITEM_RELIQUARY') {
+    return 'artifacts';
+  } else if (item.ItemType === 'ITEM_BEYOND_MATERIAL') {
+    return 'byd/items';
+  } else if (item.ItemType === 'ITEM_MATERIAL' || item.ItemType === 'ITEM_VIRTUAL') {
+    return 'items';
+  } else {
+    return null;
+  }
+})();
 
+const cssClasses = {
+  'material-item': true,
+  'no-name': props.noName,
+  'small': props.small,
+};
+
+if (typeof props.class === 'string') {
+  cssClasses[props.class] = true;
+} else if (Array.isArray(props.class)) {
+  for (const cls of props.class) {
+    cssClasses[cls] = true;
+  }
+} else if (typeof props.class === 'object') {
+  Object.assign(cssClasses, props.class);
+}
 </script>

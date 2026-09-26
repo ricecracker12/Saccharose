@@ -19,12 +19,10 @@ import {
 // Backend Util:
 import { openPgGamedata, openPgSite, SaccharoseDb } from '../../util/db.ts';
 import {
-  getLineNumberForLineText,
   grep,
   grepStream,
   langDetect,
   ShellFlags,
-  ShellTimeoutError,
 } from '../../util/shellutil.ts';
 import { _cachedImpl } from '../../util/cache.ts';
 
@@ -67,7 +65,7 @@ import { Marker } from '../../../shared/util/highlightMarker.ts';
 import { AbstractControlState, AbstractControlStateType, ControlUserModeProvider } from './abstractControlState.ts';
 import { NormTextOptions } from './genericNormalizers.ts';
 import {
-  TextMapChangeRefs,
+  TextMapChangeRefs, TextMapMultiChangeRefs,
 } from '../../../shared/types/changelog-types.ts';
 import { GameVersion, GameVersions } from '../../../shared/types/game-versions.ts';
 import { ScriptJobActionArgs, ScriptJobCoordinator, ScriptJobPostResult } from '../../util/scriptJobs.ts';
@@ -76,7 +74,7 @@ import { SiteMode } from '../../../shared/types/site/site-mode-type.ts';
 import { fsExists, fsReadJson } from '../../util/fsutil.ts';
 import { TextMapChangelog } from './tmchanges.ts';
 import { Duration } from '../../../shared/util/duration.ts';
-import { ExcelScalarEntity } from '../../../shared/types/common-types.ts';
+import { ExcelScalarEntity, TextmapSearchIndexRow } from '../../../shared/types/common-types.ts';
 import { ExcelChangelog } from './excelchanges.ts';
 
 export type AbstractControlConfig<T extends AbstractControlState = AbstractControlState> = {
@@ -166,6 +164,10 @@ export abstract class AbstractControl<T extends AbstractControlState = AbstractC
   // endregion
 
   // region State Property Aliases
+  get supportedLangCodes() {
+    return LANG_CODES.filter(langCode => !this.disabledLangCodes.has(langCode) && langCode !== 'CH');
+  }
+
   get inputLangCode(): LangCode {
     return this.state.inputLangCode;
   }
@@ -392,6 +394,9 @@ export abstract class AbstractControl<T extends AbstractControlState = AbstractC
   }
 
   getExcelPath(subPath?: string): string {
+    if (!!subPath && (subPath.includes('../') || subPath.includes('..\\'))) {
+      throw 'Access to parent directories disallowed.';
+    }
     return subPath ? path.join(this.excelPath, subPath) : this.excelPath;
   }
 
@@ -400,20 +405,29 @@ export abstract class AbstractControl<T extends AbstractControlState = AbstractC
       .filter(file => path.extname(file) === '.json')
       .asyncMap(async file => ({
         name: file.slice(0, -5),
-        size: await this.getDataFileSize(this.excelPath + '/' + file),
+        size: await this.getBaseDataFileSize(this.excelPath + '/' + file),
       }));
   }
 
-  async readJsonFile(filePath: string): Promise<any> {
-    return JSON.parse(await fsp.readFile(this.getDataFilePath(filePath), { encoding: 'utf8' }));
+  async readJsonFile(filePath: string, normalize: boolean = false): Promise<any> {
+    const json = JSON.parse(await fsp.readFile(this.getDataFilePath(filePath), { encoding: 'utf8' }));
+    if (normalize) {
+      return this.normalize(json, filePath);
+    }
+    return json;
   }
 
-  async normalize(json: any | any[], schemaTable: string | SchemaTable, doNormText: boolean = false) {
+  async normalize(json: any | any[], schemaTable: string | SchemaTable) {
     if (typeof schemaTable === 'string') {
       let fileBaseName = '/' + basename(schemaTable);
       schemaTable = Object.values(this.schema).find(s => !s.name.startsWith('Relation') && s.jsonFile.endsWith(fileBaseName));
     }
     json = normalizeRawJson(json, schemaTable);
+    return json;
+  }
+
+  async normalizeAndCommonLoad(json: any | any[], schemaTable: string | SchemaTable, doNormText: boolean = false) {
+    json = await this.normalize(json, schemaTable);
     if (Array.isArray(json)) {
       json = await this.commonLoad(json, null, doNormText);
     } else {
@@ -422,7 +436,7 @@ export abstract class AbstractControl<T extends AbstractControlState = AbstractC
     return json;
   }
 
-  async readDataFile<T>(filePath: string, doNormText: boolean = false, filter?: (record: any) => boolean): Promise<ExtractScalar<T>[]> {
+  async readBaseDataFile<T>(filePath: string, doNormText: boolean = false, filter?: (record: any) => boolean): Promise<ExtractScalar<T>[]> {
     let json = await this.readJsonFile(filePath);
     if (!Array.isArray(json)) {
       json = Object.values(json);
@@ -430,18 +444,18 @@ export abstract class AbstractControl<T extends AbstractControlState = AbstractC
     if (filter) {
       json = json.filter(filter);
     }
-    return this.normalize(json, filePath, doNormText);
+    return this.normalizeAndCommonLoad(json, filePath, doNormText);
   }
 
   async readExcelDataFile<T>(filePath: string, doNormText: boolean = false): Promise<ExtractScalar<T>[]> {
-    return this.readDataFile(path.join(this.excelPath, filePath), doNormText);
+    return this.readBaseDataFile(path.join(this.excelPath, filePath), doNormText);
   }
 
   readExcelDataFileToStream<T>(filePath: string, doNormText: boolean = false): ArrayStream<ExtractScalar<T>> {
-    return new ArrayStream<ExtractScalar<T>>(this.readDataFile(path.join(this.excelPath, filePath), doNormText));
+    return new ArrayStream<ExtractScalar<T>>(this.readBaseDataFile(path.join(this.excelPath, filePath), doNormText));
   }
 
-  async getDataFileSize(filePath: string): Promise<number> {
+  async getBaseDataFileSize(filePath: string): Promise<number> {
     return fsp.stat(this.getDataFilePath(filePath)).then(ret => ret.size);
   }
 
@@ -492,9 +506,9 @@ export abstract class AbstractControl<T extends AbstractControlState = AbstractC
       });
     }
 
-    const hashes = Array.from(results.keys());
-    const texts = await this.getTextMapItems(opts.outputLangCode, hashes);
-    const changeRefsMap = await this.textMapChangelog.selectMultiChangeRefs(hashes, opts.outputLangCode, opts.doNormText);
+    const hashes: string[] = Array.from(results.keys());
+    const texts: Record<TextMapHash, string> = await this.getTextMapItems(opts.outputLangCode, hashes);
+    const changeRefsMap: TextMapMultiChangeRefs = await this.textMapChangelog.selectMultiChangeRefs(hashes, opts.outputLangCode, opts.doNormText);
 
     for (let [textMapHash, text] of Object.entries(texts)) {
       if (opts.doNormText) {
@@ -502,7 +516,7 @@ export abstract class AbstractControl<T extends AbstractControlState = AbstractC
       }
       const result = results.get(textMapHash);
       result.text = text;
-      result.changeRefs = changeRefsMap[textMapHash];
+      result.changeRefs = changeRefsMap.byHash(textMapHash);
     }
 
     return Array.from(results.values());
@@ -536,11 +550,11 @@ export abstract class AbstractControl<T extends AbstractControlState = AbstractC
       }
     }
 
-    const changeRefsMap = await this.textMapChangelog.selectMultiChangeRefs(
+    const changeRefsMap: TextMapMultiChangeRefs = await this.textMapChangelog.selectMultiChangeRefs(
       Object.keys(agg2), opts.outputLangCode, opts.doNormText);
 
     for (let obj of Object.values(agg2)) {
-      obj.changeRefs = changeRefsMap[obj.hash];
+      obj.changeRefs = changeRefsMap.byHash(obj.hash);
     }
 
     return Object.values(agg2);
@@ -556,7 +570,7 @@ export abstract class AbstractControl<T extends AbstractControlState = AbstractC
     return {
       items,
       continueFromLine: poppedResult?.line || null,
-      hasMoreResults: !!poppedResult,
+      hasMoreResults: !!poppedResult && isInt(poppedResult.line),
       resultSetIdx,
       langSuggest: items.length ? null : await this.langSuggest(query)
     };
@@ -598,7 +612,7 @@ export abstract class AbstractControl<T extends AbstractControlState = AbstractC
           resultNumber: resultNumberingStart + out.length + 1,
           hash,
           text,
-          line: await getLineNumberForLineText(String(hash), this.getDataFilePath(getPlainTextMapRelPath(opts.inputLangCode, 'Hash'))),
+          line: undefined,
           hashMarkers: opts.searchAgainst === 'Hash' ? Marker.create(re, String(hash)) : undefined,
           version,
           changeRefs: changeRefs.list,
@@ -656,59 +670,40 @@ export abstract class AbstractControl<T extends AbstractControlState = AbstractC
   }
 
   async streamTextMapMatchesWithIndex(opts: TextMapSearchIndexStreamOpts): Promise<number | Error> {
-    const textIndexFiles: { name: string, path: string }[] = toArray(opts.textIndexName).map(textIndexName => ({
-      name: textIndexName,
-      path: getTextIndexRelPath(textIndexName)
-    }));
+    const textIndexNames: string[] = toArray(opts.textIndexName);
 
-    const promises: Promise<void>[] = [];
-    const batchMax: number = 100;
-    const hashSeen: Set<TextMapHash> = new Set();
-
-    let batch: TextMapHash[] = [];
-    let batchHashToText: Record<TextMapHash, string> = {};
-
-    const processBatch = () => {
-      if (!batch.length) {
-        return;
-      }
-      const regex = `"(` + batch.join('|') + `)":`;
-      batch = [];
-      promises.push((async () => {
-        for (let textIndexFile of textIndexFiles) {
-          const matches = await grep(regex, this.getDataFilePath(textIndexFile.path),
-            { flags: '-P', escapeDoubleQuotes: false});
-          for (let match of matches) {
-            let parts = /"(.*?)":\s+(\d+),?$/.exec(match);
-            let textMapHash = maybeInt(parts[1]);
-            let entityId = toInt(parts[2]);
-            if (hashSeen.has(textMapHash)) {
-              continue;
-            } else {
-              hashSeen.add(textMapHash);
-            }
-            opts.stream(entityId, textIndexFile.name, textMapHash, batchHashToText[textMapHash]);
-            delete batchHashToText[textMapHash];
-          }
-        }
-      })());
-    };
-
+    let hashMatches: Record<TextMapHash, string> = {};
     const nonIndexStreamOpts: TextMapSearchStreamOpts = Object.assign({}, opts, <Partial<TextMapSearchStreamOpts>> {
       stream: (textMapHash: TextMapHash, text: string) => {
-        batch.push(textMapHash);
-        batchHashToText[textMapHash] = text;
-        if (batch.length >= batchMax) {
-          processBatch();
-        }
+        hashMatches[textMapHash] = text;
       }
     });
 
     const ret = await this.streamTextMapMatches(nonIndexStreamOpts);
 
-    processBatch();
+    if (ret instanceof Error) {
+      return ret;
+    }
 
-    await Promise.all(promises);
+    let builder = this.knex.select<TextmapSearchIndexRow[]>('*').from('textmap_search_index');
+    if (textIndexNames.length === 1) {
+      builder = builder.where({ index_name: textIndexNames[0] });
+    } else {
+      builder = builder.whereIn('index_name', textIndexNames);
+    }
+    builder = builder.whereIn('hash', Object.keys(hashMatches));
+
+    const keysSeen: Set<number> = new Set<number>();
+    await builder.then(rows => {
+      for (let row of rows) {
+        if (keysSeen.has(row.key)) {
+          continue;
+        } else {
+          keysSeen.add(row.key);
+        }
+        opts.stream(row.key, row.index_name, row.hash, hashMatches[row.hash]);
+      }
+    });
 
     return ret;
   }
@@ -936,7 +931,7 @@ export abstract class AbstractControl<T extends AbstractControlState = AbstractC
         for (let row of metaEntry.rows) {
           myData.push(excelData[row]);
         }
-        myData = await this.normalize(myData, excelFileName, true);
+        myData = await this.normalizeAndCommonLoad(myData, excelFileName, true);
         usageEntities[excelFileName] = myData;
       }
     }

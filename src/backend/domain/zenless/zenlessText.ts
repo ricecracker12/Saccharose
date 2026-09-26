@@ -1,4 +1,4 @@
-import { LangCode } from '../../../shared/types/lang-types.ts';
+import { LangCode, TextMapHash } from '../../../shared/types/lang-types.ts';
 import {
   genericNormText,
   mergeMcTemplate,
@@ -6,6 +6,11 @@ import {
   postProcessBoldItalic,
 } from '../abstract/genericNormalizers.ts';
 import { isSiteModeDisabled } from '../../loadenv.ts';
+import { mapBy } from '../../../shared/util/arrayUtil.ts';
+import { defaultMap } from '../../../shared/util/genericUtil.ts';
+import { getZenlessControl, ZenlessControl } from './zenlessControl.ts';
+import { ZenlessGlossaryTerm, ZenlessMultiLangGlossaryTerm } from '../../../shared/types/zenless/zenless-misc-types.ts';
+import { logInitData } from '../../util/logger.ts';
 
 export type ZenlessNormTextOpts = {
 
@@ -65,6 +70,8 @@ export function __normZenlessText(text: string, langCode: LangCode, opts: NormTe
     opts = {};
   if (!opts.mcPlaceholderProvider)
     opts.mcPlaceholderProvider = __proxyPlaceholder;
+  if (langCode === 'RU')
+    opts.forceFancyDash = true;
 
   text = genericNormText(text, langCode, opts, {
     brFormat: '<br />'
@@ -91,6 +98,8 @@ export function __normZenlessText(text: string, langCode: LangCode, opts: NormTe
     text = text.replace(/<color=#FE437E(?:FF)?>(.*?)<\/color>/g, '{{Color|Ether|$1}}');
     text = text.replace(/<color=#2EB6FF(?:FF)?>(.*?)<\/color>/g, '{{Color|Electric|$1}}');
     text = text.replace(/<color=#F0D12B(?:FF)?>(.*?)<\/color>/g, '{{Color|Physical|$1}}');
+    text = text.replace(/<color=#A6C5FD(?:FF)?>(.*?)<\/color>/g, '{{Color|Wind|$1}}');
+    text = text.replace(/<color=#FFA9DD(?:FF)?>(.*?)<\/color>/g, '{{Color|Lumiflux|$1}}');
 
     // Unknown:
     text = text.replace(/<color=(#[0-9a-fA-F]{6})(?:FF|ff)?>(.*?)<\/color>/g, '{{Color|$1|$2}}');
@@ -116,16 +125,105 @@ export function __normZenlessText(text: string, langCode: LangCode, opts: NormTe
       }
     });
 
-  // if (text.includes('{RUBY')) {
-  //   text = text.replace(/\{RUBY_B#(.*?)}(.*?)\{RUBY_E#}/g, '{{Rubi|$2|$1}}');
-  // }
+  text = text.replace(/<Action:(InLevelMoveUp|InLevelMoveDown|InLevelMoveLeft|InLevelMoveRight)>/g,
+    (_fm, g: 'InLevelMoveUp'|'InLevelMoveDown'|'InLevelMoveLeft'|'InLevelMoveRight') => {
+      switch (g) {
+        case 'InLevelMoveUp':
+          return '{{key|W}}';
+        case 'InLevelMoveDown':
+          return '{{key|S}}';
+        case 'InLevelMoveLeft':
+          return '{{key|A}}';
+        case 'InLevelMoveRight':
+          return '{{key|D}}';
+      }
+    });
+
+  if (text.includes('<ruby=')) {
+    text = text.replaceAll(/<ruby=([^>]+)>([^<]+)<\/ruby>/g, (_fm, rubi, base) => {
+      return opts.plaintext ? base : `{{Rubi|${base}|${rubi}}}`;
+    });
+  }
+
+  text = text.replace(/<Term:(\d+)>([^<]*)<\/Term>/g, (fm: string, g1: string, g2: string) => {
+    return g2 || (GLOSSARY_TERMS[g1]?.TermTextMap?.[langCode] ?? fm);
+  });
 
   text = mergeMcTemplate(text, langCode, opts.plaintext)
 
   return text;
 }
 
+const GLOSSARY_TERMS: {[termId: number]: ZenlessMultiLangGlossaryTerm} = {};
+
 export async function loadZenlessTextSupportingData() {
   if (isSiteModeDisabled('zenless'))
     return;
+
+  logInitData('Loading Zenless-supporting text data -- starting...');
+
+  const ctrl = getZenlessControl()
+
+  const glossaryTerms = await ctrl.cached('TextSupportingData:GlossaryTerms', 'json', async () => {
+    const dataArray = await ctrl.selectAllGlossaryTerms();
+    return await populateZenlessGlossaryTerms(ctrl, dataArray);
+  });
+
+  Object.assign(GLOSSARY_TERMS, glossaryTerms);
+
+  logInitData('Loading Zenless-supporting text data -- done!');
+}
+
+async function populateZenlessGlossaryTerms(ctrl: ZenlessControl, terms: ZenlessGlossaryTerm[]): Promise<Record<string, ZenlessMultiLangGlossaryTerm>> {
+  const termsMap: Record<string, ZenlessMultiLangGlossaryTerm> = mapBy(terms, 'TermId') as Record<string, ZenlessMultiLangGlossaryTerm>;
+
+  const termHashes: Record<TextMapHash, number[]> = defaultMap('Array');
+  const titleHashes: Record<TextMapHash, number[]> = defaultMap('Array');
+  const descHashes: Record<TextMapHash, number[]> = defaultMap('Array');
+  const sourceHashes: Record<TextMapHash, number[]> = defaultMap('Array');
+
+  terms.forEach(term => {
+    if (term.TermKey)
+      termHashes[term.TermKey].push(term.TermId);
+    if (term.TitleKey)
+      titleHashes[term.TitleKey].push(term.TermId);
+    if (term.DescKey)
+      descHashes[term.DescKey].push(term.TermId);
+    if (term.SourceKey)
+      sourceHashes[term.SourceKey].push(term.TermId);
+  });
+
+  await ctrl.createLangCodeMaps(Object.keys(termHashes)).then((result) => {
+    for (let [hash, langCodeMap] of Object.entries(result)) {
+      for (let linkId of termHashes[hash]) {
+        termsMap[linkId].TermTextMap = langCodeMap;
+      }
+    }
+  });
+
+  await ctrl.createLangCodeMaps(Object.keys(titleHashes)).then((result) => {
+    for (let [hash, langCodeMap] of Object.entries(result)) {
+      for (let linkId of titleHashes[hash]) {
+        termsMap[linkId].TitleTextMap = langCodeMap;
+      }
+    }
+  });
+
+  await ctrl.createLangCodeMaps(Object.keys(descHashes)).then((result) => {
+    for (let [hash, langCodeMap] of Object.entries(result)) {
+      for (let linkId of descHashes[hash]) {
+        termsMap[linkId].DescTextMap = langCodeMap;
+      }
+    }
+  });
+
+  await ctrl.createLangCodeMaps(Object.keys(sourceHashes)).then((result) => {
+    for (let [hash, langCodeMap] of Object.entries(result)) {
+      for (let linkId of sourceHashes[hash]) {
+        termsMap[linkId].SourceTextMap = langCodeMap;
+      }
+    }
+  });
+
+  return termsMap;
 }

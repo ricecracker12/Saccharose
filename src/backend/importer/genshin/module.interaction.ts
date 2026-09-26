@@ -23,6 +23,9 @@ const allTypes: Set<string> = new Set();
 const uiTriggerContextNames: Set<string> = new Set();
 const d2f: InterActionD2F = defaultMap('Array');
 
+const outDirName = './InterAction';
+const outFileName = './InterActionD2F.json';
+
 export async function loadInterActionQD(repoRoot: string) {
   const binOutputPath: string = path.resolve(repoRoot, './BinOutput');
   const excelDirPath: string = path.resolve(repoRoot, './ExcelBinOutput');
@@ -34,9 +37,9 @@ export async function loadInterActionQD(repoRoot: string) {
 
   if (!fs.existsSync(binOutputIAQD)) throw new Error('BinOutput/InterAction/QuestDialogue path does not exist!');
 
-  const outDir = path.resolve(repoRoot, './InterAction');
+  const outDir = path.resolve(repoRoot, outDirName);
   fs.rmSync(outDir, { recursive: true, force: true });
-  fs.mkdirSync(outDir);
+  fs.mkdirSync(outDir, { recursive: true });
 
   const filePaths: string[] = [];
   for (let filePath of fsWalkSync(binOutputIAQD)) {
@@ -78,7 +81,7 @@ export async function loadInterActionQD(repoRoot: string) {
   }
   console.log('  100%');
 
-  fs.writeFileSync(path.resolve(repoRoot, './InterActionD2F.json'), reformatPrimitiveArrays(JSON.stringify(d2f, null, 2)));
+  fs.writeFileSync(path.resolve(repoRoot, outFileName), reformatPrimitiveArrays(JSON.stringify(d2f, null, 2)));
   console.log('Done');
 }
 

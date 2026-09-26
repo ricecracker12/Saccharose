@@ -2,7 +2,7 @@ import path from 'path';
 import { getGenshinDataFilePath } from '../../loadenv.ts';
 import { promises as fsp } from 'fs';
 import { createPropertySchemaWithArray, PropertySchemaResult, shouldIgnoreConfig } from '../schema/translate_schema.ts';
-import { defaultMap } from '../../../shared/util/genericUtil.ts';
+import { defaultMap, isUnset } from '../../../shared/util/genericUtil.ts';
 import { INTERACTION_KEEP_TYPES } from '../../../shared/types/genshin/interaction-types.ts';
 import { sort } from '../../../shared/util/arrayUtil.ts';
 import { fsRead, fsReadJson, fsWalkSync, fsWrite } from '../../util/fsutil.ts';
@@ -60,7 +60,10 @@ async function walkSyncWrite(inDir: string, outDir: string, mapping: Record<stri
 
 type Combiner = (acc: any[], json: any, fileName?: string) => void;
 
-async function walkSyncJsonCombine(dir: string, combiner: Combiner, maxCombines: number = 0, mustIncludeFiles: string[] = [], onlyIntFiles: boolean = false): Promise<any[]> {
+async function walkSyncJsonCombine(dir: string, combiner: Combiner, maxCombines: number = 0,
+                                   mustIncludeFiles: string[] = [],
+                                   onlyIntFiles: boolean = false,
+                                   onlyMustIncludeFiles: boolean = false): Promise<any[]> {
   let acc: any[] = [];
   let combines: number = 0;
 
@@ -75,6 +78,9 @@ async function walkSyncJsonCombine(dir: string, combiner: Combiner, maxCombines:
     }
     const baseName = path.basename(file);
     const baseNameNoExt = baseName.slice(0, -5);
+    if (onlyMustIncludeFiles && !mustIncludeFiles.includes(baseName)) {
+      continue;
+    }
     if (onlyIntFiles && !isInt(baseNameNoExt)) {
       continue;
     }
@@ -265,7 +271,7 @@ async function mapCodexQuest(): Promise<Record<string, string>> {
   propertySchema[findKeyWithValue(rawItem0, 3, 0)] = 'nextItemId';
   propertySchema[findKeyWithValue(rawItem0, 'SingleDialog', 0)] = 'itemType';
   propertySchema[findKeyWithValue(rawItem0, v => JSON.stringify(v).includes(`"SpeakerKnown"`), 0)] = 'speakerText'
-  propertySchema[findKeyWithValue(rawItem0, v => Array.isArray(v) && JSON.stringify(v).includes(`"Dialog"`), 0)] = 'dialogs';
+  propertySchema[findKeyWithValue(rawItem0, v => Array.isArray(v) && JSON.stringify(v).includes(`DialogNormal`), 0)] = 'dialogs';
 
   rawItem0 = renameFields(rawItem0, propertySchema);
 
@@ -273,7 +279,7 @@ async function mapCodexQuest(): Promise<Record<string, string>> {
 
   propertySchema[findKeyWithValue(rawDialog0, v => JSON.stringify(v).includes(`"DialogNormal"`), 0)] = 'text';
   propertySchema[findKeyWithValue(rawDialog0, 101220101, 0)] = 'soundId';
-  propertySchema[findKeyWithValue(rawDialog0, 'Dialog', 0)] = 'dialogType';
+  // propertySchema[findKeyWithValue(rawDialog0, 'Dialog', 0)] = 'dialogType';
 
   rawRecord = await fsReadJson(getGenshinDataFilePath('./BinOutput.Raw/CodexQuest/11027.json'));
   rawRecord = renameFields(rawRecord, propertySchema);
@@ -291,7 +297,7 @@ async function mapCodexQuest(): Promise<Record<string, string>> {
   rawItem0 = rawRecord.subQuests.find(f => JSON.stringify(f).includes(`itemId":232`)).items.find(i => i.itemId === 232);
 
   propertySchema[findKeyWithValue(rawItem0, (v,k) => JSON.stringify(v).includes(`SpeakerKnown`) && k !== 'speakerText', 0)] = 'speakerText2'
-  propertySchema[findKeyWithValue(rawItem0, (v,k) => Array.isArray(v) && JSON.stringify(v).includes(`"Dialog"`) && k !== 'dialogs', 0)] = 'dialogs2';
+  propertySchema[findKeyWithValue(rawItem0, (v,k) => Array.isArray(v) && JSON.stringify(v).includes(`DialogNormal`) && k !== 'dialogs', 0)] = 'dialogs2';
 
   rawItem0 = rawRecord.subQuests.find(f => JSON.stringify(f).includes(`itemId":274`)).items.find(i => i.itemId === 274);
 
@@ -302,13 +308,13 @@ async function mapCodexQuest(): Promise<Record<string, string>> {
 }
 
 async function mapGcgDeclaredValueSet(): Promise<Record<string, string>> {
-  const rawRecord = await fsReadJson(getGenshinDataFilePath('./BinOutput.Raw/GCG/Gcg_DeclaredValueSet/Char_Skill_11061.json'));
+  const rawRecord = await fsReadJson(getGenshinDataFilePath('./BinOutput.Raw/GCG/Gcg_DeclaredValueSet/Char_Skill_11062.json'));
   const propertySchema: Record<string, string> = {};
 
-  propertySchema[findKeyWithValue(rawRecord, 'Char_Skill_11061', 0)] = 'name';
+  propertySchema[findKeyWithValue(rawRecord, 'Char_Skill_11062', 0)] = 'name';
   propertySchema[findKeyWithValue(rawRecord, 'EffectNum', 2)] = 'type';
   propertySchema[findKeyWithValue(rawRecord, 2, 2)] = 'value';
-  propertySchema[findKeyWithValue(rawRecord, 'GCG_ELEMENT_PHYSIC', 2)] = 'element';
+  propertySchema[findKeyWithValue(rawRecord, 'GCG_ELEMENT_CRYO', 2)] = 'element';
   propertySchema[findKeyWithValue(rawRecord, v => typeof v === 'object', 0)] = 'declaredValueMap';
 
   console.log(propertySchema);
@@ -327,10 +333,13 @@ async function mapFurnSuit(): Promise<Record<string, string>> {
   propertySchema[findKeyWithValue(rawRecord, 370317, 1)] = 'furnitureID';
 
   propertySchema[findKeyWithValue(rawRecord, v =>
-    String(v['_x']).includes('12.51') && String(v['_y']).includes('0.01') && String(v['_z']).includes('-12.96'), 1)] = 'eulerAngles';
+    String(v['x']).includes('12.51') && String(v['y']).includes('0.01') && String(v['z']).includes('-12.96'), 1)] = 'eulerAngles';
 
   propertySchema[findKeyWithValue(rawRecord, v =>
-    String(v['_x']).includes('0') && String(v['_y']).includes('54.31') && String(v['_z']).includes('0'), 1)] = 'rotation';
+    (isUnset(v['x']) || String(v['x']).includes('0'))
+    && String(v['y']).includes('54.31')
+    && (isUnset(v['z']) || String(v['z']).includes('0'))
+    , 1)] = 'rotation';
 
   console.log(propertySchema);
 
@@ -445,6 +454,18 @@ async function mapQuest(): Promise<Record<string, string>> {
     rawRows
   );
 
+  // const schemaRows2: any[] = await walkSyncJsonCombine(getSchemaFilePath('./BinOutput/Quest'),
+  //   getQuestCombiner(true), 120, ['76190.json'], false, true);
+  // const rawRows2: any[] = await walkSyncJsonCombine(getGenshinDataFilePath('./BinOutput.Raw/Quest'),
+  //   getQuestCombiner(false), 120, ['bdc24e43.json'], false, true);
+  //
+  // const propertySchema2: PropertySchemaResult = await createPropertySchemaWithArray(
+  //   null,
+  //   null,
+  //   schemaRows2,
+  //   rawRows2
+  // );
+
   console.log(propertySchema.map);
 
   return propertySchema.map;
@@ -501,12 +522,16 @@ async function mapTalk(): Promise<Record<string, string>> {
     // 'Storyboard', 'StoryboardGroup'
   ];
 
+  const MUST_INCLUDE_FILES: Record<string, string[]> = {
+    'Quest': ['7009601.json'],
+  }
+
   for (let SUB_FOLDER of SUB_FOLDERS) {
     console.log('Processing Talk/' + SUB_FOLDER);
     const schemaRows: any[] = await walkSyncJsonCombine(getSchemaFilePath('./BinOutput/Talk/' + SUB_FOLDER),
-      getTalkCombiner(true), 60, [], true);
+      getTalkCombiner(true), 60, MUST_INCLUDE_FILES[SUB_FOLDER] || [], true);
     const rawRows: any[] = await walkSyncJsonCombine(getGenshinDataFilePath('./BinOutput.Raw/Talk/' + SUB_FOLDER),
-      getTalkCombiner(false), 60, [], true);
+      getTalkCombiner(false), 60, MUST_INCLUDE_FILES[SUB_FOLDER] || [], true);
 
     const propertySchema: PropertySchemaResult = await createPropertySchemaWithArray(
       null,

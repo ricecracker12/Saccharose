@@ -8,20 +8,31 @@ ALTER SYSTEM SET max_wal_senders = 0;
 
 -- TEXTMAP CHANGES
 --------------------------------------------------------------------------------------------------------------
+CREATE TABLE textmap_hash_aggs
+(
+    hash        TEXT NOT NULL,
+    agg_id      UUID NOT NULL DEFAULT gen_random_uuid(),
+    PRIMARY KEY (hash)
+);
+
 CREATE TABLE textmap_changes
 (
-
     version         TEXT NOT NULL,
     lang_code       TEXT NOT NULL,
     hash            TEXT NOT NULL,
+    agg_id          UUID NOT NULL,
+
     change_type     TEXT NOT NULL,
     content         TEXT,
     prev_content    TEXT,
+    prev_hash       TEXT,
     PRIMARY KEY (version, lang_code, hash)
 );
 
 CREATE INDEX textmap_changes_version_lang_code_idx ON textmap_changes (version, lang_code);
-CREATE INDEX textmap_changes_hash_change_type_idx ON textmap_changes (hash, change_type);
+CREATE INDEX idx_textmap_changes_version_change_type ON textmap_changes (version, change_type);
+CREATE INDEX idx_textmap_changes_lang_code_agg_id ON textmap_changes (lang_code, agg_id);
+CREATE INDEX idx_textmap_changes_agg_id_lang_code ON textmap_changes (agg_id, lang_code);
 
 -- EXCEL SCALARS
 --------------------------------------------------------------------------------------------------------------
@@ -53,3 +64,17 @@ CREATE INDEX excel_changes_version_idx ON excel_changes (version);
 
 -- Non-unique composite index on ("key", "excel_file")
 CREATE INDEX idx_excel_change_entity_key_version ON excel_changes (key, excel_file);
+
+-- APPLICATION TEXTMAP SEARCH INDEXES
+--------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS textmap_search_index CASCADE;
+
+CREATE TABLE textmap_search_index
+(
+    index_name      TEXT NOT NULL,
+    hash            TEXT NOT NULL,
+    key             INT NOT NULL,
+    role            TEXT
+);
+
+CREATE INDEX idx_textmap_search_index_index_name_hash ON textmap_search_index (index_name, hash);

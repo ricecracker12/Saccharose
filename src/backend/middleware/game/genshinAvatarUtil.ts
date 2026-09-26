@@ -2,7 +2,7 @@ import { GenshinControl } from '../../domain/genshin/genshinControl.ts';
 import { AvatarExcelConfigData, isTraveler } from '../../../shared/types/genshin/avatar-types.ts';
 import { fetchCharacterStories } from '../../domain/genshin/character/fetchStoryFetters.ts';
 import { isInt, toInt } from '../../../shared/util/numberUtil.ts';
-import { isString } from '../../../shared/util/stringUtil.ts';
+import { isString, toString } from '../../../shared/util/stringUtil.ts';
 import jsonMask from 'json-mask';
 import { HomeWorldNPCExcelConfigData } from '../../../shared/types/genshin/homeworld-types.ts';
 import { getHomeWorldCompanions } from '../../domain/genshin/character/companion_dialogue.ts';
@@ -29,8 +29,8 @@ export async function getGenshinAvatars(ctrl: GenshinControl, combineTraveler: b
     const storiesByAvatar = await fetchCharacterStories(ctrl);
     let foundTraveler = false;
 
-    const lumineName = await ctrl.selectManualTextMapConfigDataById('INFO_FEMALE_PRONOUN_YING');
-    const aetherName = await ctrl.selectManualTextMapConfigDataById('INFO_MALE_PRONOUN_KONG');
+    const lumineName = await ctrl.manualtm.selectRecord('INFO_FEMALE_PRONOUN_YING');
+    const aetherName = await ctrl.manualtm.selectRecord('INFO_MALE_PRONOUN_KONG');
 
     return Object.values(storiesByAvatar)
       .map(x => jsonMask(x.avatar, avatarMaskProps))
@@ -66,8 +66,10 @@ export async function getGenshinAvatars(ctrl: GenshinControl, combineTraveler: b
 
 export async function getGenshinAvatar(ctrl: GenshinControl, req: Request, combineTraveler: boolean): Promise<AvatarExcelConfigData> {
   const avatars = await getGenshinAvatars(ctrl, combineTraveler);
+
   const arg: string|number = ['avatarId', 'avatarName', 'avatar', 'id']
-    .map(key => String(req.params[key] || req.query[key])).find(val => !!val);
+    .map(key => toString(req.params[key] || req.query[key]))
+    .find(val => !!val);
 
   if (!arg) {
     return null;
@@ -83,7 +85,7 @@ export async function getGenshinAvatar(ctrl: GenshinControl, req: Request, combi
         const langCodeMap = await ctrl.createLangCodeMap(avatar.NameTextMapHash, false);
         for (let name of Object.values(langCodeMap)) {
           if (nameCmp === name?.toLowerCase()) {
-            req.context.htmlMetaProps['X-ReplaceInUrl'] = arg + ';' + avatar.NameText;
+            req.context.setHtmlMetaProp('X-ReplaceInUrl', arg + ';' + avatar.NameText);
             return avatar;
           }
         }
@@ -96,7 +98,7 @@ export async function getGenshinAvatar(ctrl: GenshinControl, req: Request, combi
 export async function getCompanion(ctrl: GenshinControl, req: Request): Promise<HomeWorldNPCExcelConfigData> {
   const companions = await getHomeWorldCompanions(ctrl);
   const arg: string|number = ['avatarId', 'avatarName', 'avatar', 'id']
-    .map(key => String(req.params[key] || req.query[key])).find(val => !!val);
+    .map(key => toString(req.params[key] || req.query[key])).find(val => !!val);
 
   if (!arg) {
     return null;
@@ -112,7 +114,7 @@ export async function getCompanion(ctrl: GenshinControl, req: Request): Promise<
         const langCodeMap = await ctrl.createLangCodeMap(companion.CommonNameTextMapHash, false);
         for (let name of Object.values(langCodeMap)) {
           if (nameCmp === name?.toLowerCase()) {
-            req.context.htmlMetaProps['X-ReplaceInUrl'] = arg + ';' + companion.CommonName;
+            req.context.setHtmlMetaProp('X-ReplaceInUrl', arg + ';' + companion.CommonName);
             return companion;
           }
         }

@@ -1,43 +1,28 @@
 import helmet from 'helmet';
-import { create } from '../routing/router.ts';
+import { create } from '../rendering/customRouter.ts';
 import { getRandomInt, toBoolean } from '../../shared/util/genericUtil.ts';
 import GenshinRouter from './genshin/app/_index.ts';
 import StarRailRouter from './hsr/app/_index.ts';
 import ZenlessRouter from './zenless/app/_index.ts';
 import WuwaRouter from './wuwa/app/_index.ts';
 import { NextFunction, Request, Response, Router } from 'express';
-import { SiteUserProvider } from '../middleware/auth/SiteUserProvider.ts';
 import UserRouter from './site/app/UserRouter.ts';
 import AdminRouter from './site/app/AdminRouter.ts';
-import { createLocalControls } from '../middleware/request/tracer.ts';
-import { getControlUserMode } from '../domain/abstract/abstractControlState.ts';
 import { isSiteModeDisabled } from '../loadenv.ts';
 import {
   GENSHIN_SITE_MODE_BASE_PATHS,
   HSR_SITE_MODE_BASE_PATHS, WUWA_SITE_MODE_BASE_PATHS,
   ZENLESS_SITE_MODE_BASE_PATHS,
 } from '../../shared/types/site/site-mode-type.ts';
-
-export async function provideAppBaseLocals(req: Request) {
-  const localControls = createLocalControls(getControlUserMode(req), req);
-  return {
-    ... localControls,
-    outputLangCode: req.context.outputLangCode,
-    inputLangCode: req.context.inputLangCode,
-    csrfToken: req.csrfToken(),
-    siteNoticeBanners: await SiteUserProvider.getSiteNoticesForBanner(req)
-  };
-}
+import UnavailableErrorCard from '../components/errors/UnavailableErrorCard.vue';
 
 export default async function(): Promise<Router> {
   const router: Router = create({
-    layouts: ['layouts/app-layout', 'layouts/app-layout-inner'],
-    bodyClass: async (_req: Request) => {
+    layoutType: 'app',
+    bodyClass: () => {
       const num = getRandomInt(1, 100);
-      return num >= 3 && num <= 10 ? ['painmelo'] : [];
-    },
-    locals: async (req: Request) => {
-      return await provideAppBaseLocals(req);
+      return num > 3 && num <= 7 ? ['painmelo'] : [];
+      // 8 -> 5% chance of painmelo easter egg
     }
   });
 
@@ -65,59 +50,25 @@ export default async function(): Promise<Router> {
   });
 
   if (isSiteModeDisabled('genshin')) {
-    GENSHIN_SITE_MODE_BASE_PATHS.forEach(basePath => {
-      router.use(`${basePath}`, (_req: Request, res: Response) => {
-        res.status(404).render('errors/unavailable', {
-          label: 'Genshin Impact',
-          bodyClass: 'hide-app-sidebar'
-        });
-      });
-      router.use(`${basePath}/*splat`, (_req: Request, res: Response) => {
-        res.status(404).render('errors/unavailable', {
-          label: 'Genshin Impact',
-          bodyClass: 'hide-app-sidebar'
-        });
-      });
-    });
+    unavailableSiteModeHandler(router, GENSHIN_SITE_MODE_BASE_PATHS, 'Genshin Impact');
   } else {
     router.use(GENSHIN_SITE_MODE_BASE_PATHS,  await GenshinRouter());
   }
 
   if (isSiteModeDisabled('hsr')) {
-    HSR_SITE_MODE_BASE_PATHS.forEach(basePath => {
-      router.use(`${basePath}/*splat`, (_req: Request, res: Response) => {
-        res.status(404).render('errors/unavailable', {
-          label: 'Honkai Star Rail',
-          bodyClass: 'hide-app-sidebar'
-        });
-      });
-    });
+    unavailableSiteModeHandler(router, HSR_SITE_MODE_BASE_PATHS, 'Honkai Star Rail');
   } else {
     router.use(HSR_SITE_MODE_BASE_PATHS, await StarRailRouter());
   }
 
   if (isSiteModeDisabled('zenless')) {
-    ZENLESS_SITE_MODE_BASE_PATHS.forEach(basePath => {
-      router.use(`${basePath}/*splat`, (_req: Request, res: Response) => {
-        res.status(404).render('errors/unavailable', {
-          label: 'Zenless Zone Zero',
-          bodyClass: 'hide-app-sidebar'
-        });
-      });
-    });
+    unavailableSiteModeHandler(router, ZENLESS_SITE_MODE_BASE_PATHS, 'Zenless Zone Zero');
   } else {
     router.use(ZENLESS_SITE_MODE_BASE_PATHS, await ZenlessRouter());
   }
 
   if (isSiteModeDisabled('wuwa')) {
-    WUWA_SITE_MODE_BASE_PATHS.forEach(basePath => {
-      router.use(`${basePath}/*splat`,  (_req: Request, res: Response) => {
-        res.status(404).render('errors/unavailable', {
-          label: 'Wuthering Waves',
-          bodyClass: 'hide-app-sidebar'
-        });
-      });
-    })
+    unavailableSiteModeHandler(router, WUWA_SITE_MODE_BASE_PATHS, 'Wuthering Waves');
   } else {
     router.use(WUWA_SITE_MODE_BASE_PATHS, await WuwaRouter());
   }
@@ -127,3 +78,16 @@ export default async function(): Promise<Router> {
 
   return router;
 };
+
+function unavailableSiteModeHandler(router: Router, basePaths: string[], label: string) {
+  basePaths.forEach(basePath => {
+    [`${basePath}`, `${basePath}/*splat`].forEach(actualPath => {
+      router.use(actualPath, async (_req: Request, res: Response) => {
+        await res.status(404).renderComponent(UnavailableErrorCard, {
+          label: label,
+          bodyClass: ['hide-app-sidebar']
+        });
+      });
+    });
+  });
+}

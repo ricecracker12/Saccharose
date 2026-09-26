@@ -1,4 +1,5 @@
 import { isInt } from '../../util/numberUtil.ts';
+import { ExcelChangeRef } from '../changelog-types.ts';
 
 export type BydMaterialExcelConfigDataItemUseOp =
   'BYD_MATERIAL_USE_ADD_SELECT_ITEM_UNREPEATABLE' |
@@ -29,7 +30,10 @@ export type BydMaterialType =
   'BEYOND_MATERIAL_TYPE_DROP_EXTRA_CHEST'             |
   'BEYOND_MATERIAL_TYPE_UNREPEATABLE_SELECTABLE_CHEST';
 
-export type BydMaterialLoadConf = {LoadItemUse?: boolean};
+export type BydMaterialLoadConf = {
+  LoadItemUse?: boolean,
+  LoadAddedAt?: boolean,
+};
 
 export interface BydMaterialExcelConfigData {
   BydMaterialType: BydMaterialType,
@@ -64,7 +68,8 @@ export interface BydMaterialExcelConfigData {
   LoadedItemUse?: {
     Costume?: BeyondCostumeExcelConfigData,
     CostumeSuit?: BeyondCostumeSuitExcelConfigData,
-  }
+  },
+  AddedAt?: ExcelChangeRef,
 }
 
 export interface BydMaterialSourceExcelConfigData {
@@ -113,6 +118,7 @@ export type BeyondCostumeComponentSlot =
 export type BeyondColorScheme = 'Black' | 'Blue' | 'Brown' | 'Gray' | 'Green' | 'Multi' | 'Orange' | 'Purple' | 'Red' | 'White' | 'Yellow';
 
 export interface BeyondCostumeExcelConfigData {
+  Id?: number, // alias of CostumeId
   CostumeId: number,
   SortId: number,
   SuitId: number,
@@ -140,6 +146,7 @@ export interface BeyondCostumeExcelConfigData {
   IconHash: string|number,
   Icon?: string,
   IconUrl?: string,
+  AddedAt?: ExcelChangeRef,
 }
 
 export function isBeyondCostume(x: any): x is BeyondCostumeExcelConfigData {
@@ -150,6 +157,7 @@ export type BeyondCostumeSuitSource = 'BP' | 'GachaFree' | 'GachaPaid' | 'None' 
 export type BeyondCostumeSuitExcelConfigDataShowType = 'BYD_COSTUME_SUIT_SHOW_TYPE_BY_SLOT_AND_SUIT' | 'BYD_COSTUME_SUIT_SHOW_TYPE_ONLY_SUIT';
 
 export interface BeyondCostumeSuitExcelConfigData {
+  Id?: number, // alias of SuitId
   SuitId: number,
   SortId: number,
   Rarity: BeyondRarity,
@@ -181,6 +189,8 @@ export interface BeyondCostumeSuitExcelConfigData {
   OKKOMOCBGNM: string,
   PGGGJDBAJBP: string,
   PNFLGFBKKAJ: number,
+
+  AddedAt?: ExcelChangeRef,
 }
 
 export function isBeyondCostumeSuit(x: any): x is BeyondCostumeSuitExcelConfigData {

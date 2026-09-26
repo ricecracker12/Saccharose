@@ -13,7 +13,7 @@ import { getStarRailControl, loadStarRailVoiceItems } from '../../domain/hsr/sta
 import { fetchVoiceAtlases } from '../../domain/hsr/character/fetchVoiceAtlas.ts';
 import { indexStarRailImages } from './module.index-images.ts';
 import { starRailNormalize } from './module.normalize.ts';
-import { createChangelog } from '../util/createChangelogUtil.ts';
+import { createChangelog, doChangelogMiscBackfill } from '../util/changelog/createChangelogUtil.ts';
 import { recordNewStarRailImages } from './module.new-images.ts';
 import { isset } from '../../../shared/util/genericUtil.ts';
 import { doImportExcelScalars } from '../util/excel_usages_importer.ts';
@@ -52,6 +52,7 @@ export async function importHsrFilesCli() {
 
   const options_util: (ArgsOptionDefinition & UsageOptionDefinition)[] = [
     {name: 'help', type: Boolean, description: 'Display this usage guide.'},
+    {name: 'changelog-misc-backfill', type: Boolean, description: 'Misc backfill'},
   ];
 
   let options: commandLineArgs.CommandLineOptions;
@@ -129,6 +130,9 @@ export async function importHsrFilesCli() {
   }
   if (options['changelog-ex']) {
     await createChangelog(getStarRailControl(), options['changelog-ex'], 'excel');
+  }
+  if (options['changelog-misc-backfill']) {
+    await doChangelogMiscBackfill(getStarRailControl());
   }
   if (options['excel-scalars']) {
     await doImportExcelScalars(getStarRailControl());

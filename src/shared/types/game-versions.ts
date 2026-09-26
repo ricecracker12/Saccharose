@@ -7,6 +7,7 @@ export class GameVersion {
   label?: string;
   aliases?: string[];
   parent: GameVersions;
+  idxOrder: number;
 
   showTextmapChangelog?: boolean;
   showExcelChangelog?: boolean;
@@ -31,6 +32,7 @@ export class GameVersion {
       number: this.number,
       prevNumber: this.prevNumber,
       label: this.label,
+      idxOrder: this.idxOrder,
       aliases: this.aliases,
       showTextmapChangelog: this.showTextmapChangelog,
       showExcelChangelog: this.showExcelChangelog,
@@ -66,7 +68,10 @@ export class GameVersions {
 
   constructor(readonly list: GameVersion[], readonly isTopLevel: boolean = false) {
     if (this.isTopLevel) {
-      list.forEach(v => v.parent = this);
+      list.forEach((v, idx) => {
+        v.parent = this;
+        v.idxOrder = idx;
+      });
     }
   }
 
@@ -197,25 +202,25 @@ export const GenshinVersions: GameVersions = new GameVersions([
   new GameVersion({number: '1.5', prevNumber: '1.4', showTextmapChangelog: true, showNewMedia: true}),
   new GameVersion({number: '1.6', prevNumber: '1.5', showTextmapChangelog: true, showNewMedia: true}),
 
-  new GameVersion({number: '2.0', prevNumber: '1.6', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '2.1', prevNumber: '2.0', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '2.2', prevNumber: '2.1', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '2.3', prevNumber: '2.2', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '2.4', prevNumber: '2.3', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '2.5', prevNumber: '2.4', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '2.6', prevNumber: '2.5', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '2.7', prevNumber: '2.6', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '2.8', prevNumber: '2.7', showTextmapChangelog: true, showNewMedia: true}),
+  new GameVersion({number: '2.0', prevNumber: '1.6', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '2.1', prevNumber: '2.0', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '2.2', prevNumber: '2.1', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '2.3', prevNumber: '2.2', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '2.4', prevNumber: '2.3', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '2.5', prevNumber: '2.4', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '2.6', prevNumber: '2.5', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '2.7', prevNumber: '2.6', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '2.8', prevNumber: '2.7', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
 
-  new GameVersion({number: '3.0', prevNumber: '2.8', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '3.1', prevNumber: '3.0', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '3.2', prevNumber: '3.1', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '3.3', prevNumber: '3.2', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '3.4', prevNumber: '3.3', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '3.5', prevNumber: '3.4', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '3.6', prevNumber: '3.5', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '3.7', prevNumber: '3.6', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '3.8', prevNumber: '3.7', showTextmapChangelog: true, showNewMedia: true}),
+  new GameVersion({number: '3.0', prevNumber: '2.8', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '3.1', prevNumber: '3.0', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '3.2', prevNumber: '3.1', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '3.3', prevNumber: '3.2', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '3.4', prevNumber: '3.3', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '3.5', prevNumber: '3.4', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '3.6', prevNumber: '3.5', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '3.7', prevNumber: '3.6', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '3.8', prevNumber: '3.7', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
 
   new GameVersion({number: '4.0', prevNumber: '3.8', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
   new GameVersion({number: '4.1', prevNumber: '4.0', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
@@ -241,6 +246,10 @@ export const GenshinVersions: GameVersions = new GameVersions([
   new GameVersion({number: '6.3', prevNumber: '6.2', label: 'Luna IV', aliases: ['Luna 4', 'L4'], showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
   new GameVersion({number: '6.4', prevNumber: '6.3', label: 'Luna V', aliases: ['Luna 5', 'L5'], showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
   new GameVersion({number: '6.5', prevNumber: '6.4', label: 'Luna VI', aliases: ['Luna 6', 'L6'], showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '6.6', prevNumber: '6.5', label: 'Luna VII', aliases: ['Luna 7', 'L7'], showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '6.7', prevNumber: '6.6', label: 'Luna VIII', aliases: ['Luna 8', 'L8'], showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '7.0', prevNumber: '6.7', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
+  new GameVersion({number: '7.1', prevNumber: '7.0', showTextmapChangelog: true, showExcelChangelog: true, showNewMedia: true, hasChangelogSummary: true}),
 ], true);
 
 // TODO: This needs to be updated with each new Honkai Star Rail version!
@@ -261,7 +270,7 @@ export const StarRailVersions: GameVersions = new GameVersions([
   new GameVersion({number: '2.6', prevNumber: '2.5', showTextmapChangelog: true, showNewMedia: true}),
   new GameVersion({number: '2.7', prevNumber: '2.6', showTextmapChangelog: true, showNewMedia: true}),
   new GameVersion({number: '3.0', prevNumber: '2.7', showTextmapChangelog: true, showNewMedia: true}),
-  new GameVersion({number: '3.1', prevNumber: '3.0', showTextmapChangelog: false, showNewMedia: true, noPriorChangelog: true}),
+  new GameVersion({number: '3.1', prevNumber: '3.0', showTextmapChangelog: true, showNewMedia: true}),
   new GameVersion({number: '3.2', prevNumber: '3.1', showTextmapChangelog: true, showNewMedia: true}),
   new GameVersion({number: '3.3', prevNumber: '3.2', showTextmapChangelog: true, showNewMedia: true}),
   new GameVersion({number: '3.4', prevNumber: '3.3', showTextmapChangelog: true, showNewMedia: true}),
@@ -272,6 +281,9 @@ export const StarRailVersions: GameVersions = new GameVersions([
   new GameVersion({number: '4.0', prevNumber: '3.8', showTextmapChangelog: true, showNewMedia: true}),
   new GameVersion({number: '4.1', prevNumber: '4.0', showTextmapChangelog: true, showNewMedia: true}),
   new GameVersion({number: '4.2', prevNumber: '4.1', showTextmapChangelog: true, showNewMedia: true}),
+  new GameVersion({number: '4.3', prevNumber: '4.2', showTextmapChangelog: true, showNewMedia: true}),
+  new GameVersion({number: '4.4', prevNumber: '4.3', showTextmapChangelog: true, showNewMedia: true}),
+  new GameVersion({number: '4.5', prevNumber: '4.4', showTextmapChangelog: true, showNewMedia: true}),
 ], true);
 
 // TODO: This needs to be updated with each new Zenless Zone Zero version!
@@ -292,6 +304,10 @@ export const ZenlessVersions: GameVersions = new GameVersions([
   new GameVersion({number: '2.5', prevNumber: '2.4', showTextmapChangelog: true}),
   new GameVersion({number: '2.6', prevNumber: '2.5', showTextmapChangelog: true}),
   new GameVersion({number: '2.7', prevNumber: '2.6', showTextmapChangelog: true}),
+  new GameVersion({number: '2.8', prevNumber: '2.7', showTextmapChangelog: true}),
+  new GameVersion({number: '3.0', prevNumber: '2.8', showTextmapChangelog: true}),
+  new GameVersion({number: '3.1', prevNumber: '3.0', showTextmapChangelog: true}),
+  new GameVersion({number: '3.2', prevNumber: '3.1', showTextmapChangelog: true}),
 ], true);
 
 // TODO: This needs to be updated with each new Wuthering Waves version!
@@ -315,13 +331,13 @@ export const WuwaVersions: GameVersions = new GameVersions([
 ], true);
 
 // TODO: This needs to be updated with each new Genshin version!
-export const CurrentGenshinVersion: GameVersion = GenshinVersions.get('6.5');
+export const CurrentGenshinVersion: GameVersion = GenshinVersions.get('7.1');
 
 // TODO: This needs to be updated with each new Honkai Star Rail version!
-export const CurrentStarRailVersion: GameVersion = StarRailVersions.get('4.2');
+export const CurrentStarRailVersion: GameVersion = StarRailVersions.get('4.5');
 
 // TODO: This needs to be updated with each new Zenless Zone Zero version!
-export const CurrentZenlessVersion: GameVersion = ZenlessVersions.get('2.7');
+export const CurrentZenlessVersion: GameVersion = ZenlessVersions.get('3.2');
 
 // TODO: This needs to be updated with each new Wuthering Waves version!
 export const CurrentWuwaVersion: GameVersion = WuwaVersions.get('3.1');

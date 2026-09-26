@@ -29,6 +29,11 @@ import { sort } from '../../../../shared/util/arrayUtil.ts';
 import { defaultMap } from '../../../../shared/util/genericUtil.ts';
 import { GameVersion, GameVersions } from '../../../../shared/types/game-versions.ts';
 import { NpcExcelConfigData } from '../../../../shared/types/genshin/npc-types.ts';
+import {
+  BeyondCostumeExcelConfigData, BeyondCostumeSuitExcelConfigData,
+  BydMaterialExcelConfigData,
+} from '../../../../shared/types/genshin/beyond-types.ts';
+import { ReliquarySetExcelConfigData } from '../../../../shared/types/genshin/artifact-types.ts';
 
 export type GenshinChangelogNewRecordSummary = {
   avatars: AvatarExcelConfigData[],
@@ -39,6 +44,10 @@ export type GenshinChangelogNewRecordSummary = {
   blueprints: MaterialExcelConfigData[],
   avatarItems: MaterialExcelConfigData[],
   items: MaterialExcelConfigData[],
+  bydItems: BydMaterialExcelConfigData[],
+  bydCostumes: BeyondCostumeExcelConfigData[],
+  bydCostumeSuits: BeyondCostumeSuitExcelConfigData[],
+  artifactSets: ReliquarySetExcelConfigData[],
 
   furnishings: HomeWorldFurnitureExcelConfigData[],
   furnishingSets: FurnitureSuiteExcelConfigData[],
@@ -120,6 +129,10 @@ async function _generateGenshinChangelogNewRecordSummary(ctrl: GenshinControl, g
     avatarItems: null,
     blueprints: null,
     items: null,
+    bydItems: null,
+    bydCostumes: null,
+    bydCostumeSuits: null,
+    artifactSets: null,
 
     furnishings: null,
     furnishingSets: null,
@@ -168,7 +181,22 @@ async function _generateGenshinChangelogNewRecordSummary(ctrl: GenshinControl, g
       });
     }),
 
-    newIntKeysOf('MonsterExcelConfigData').asyncMap(monsterId => ctrl.selectMonsterById(monsterId)).then(monsters => {
+    newIntKeysOf('ReliquarySetExcelConfigData').asyncMap(id => ctrl.selectArtifactSetById(id, {LoadArtifacts: true}))
+      .then(artifactSets => {
+        out.artifactSets = artifactSets;
+      }),
+
+    newIntKeysOf('BydMaterialExcelConfigData').asyncMap(id => ctrl.selectBydMaterialExcelConfigData(id)).then(bydItems => {
+      out.bydItems = bydItems;
+    }),
+    newIntKeysOf('BeyondCostumeExcelConfigData').asyncMap(id => ctrl.selectBeyondCostumeExcelConfigData(id)).then(costumes => {
+      out.bydCostumes = costumes;
+    }),
+    newIntKeysOf('BeyondCostumeSuitExcelConfigData').asyncMap(id => ctrl.selectBeyondCostumeSuitExcelConfigData(id)).then(costumeSuits => {
+      out.bydCostumeSuits = costumeSuits;
+    }),
+
+    newIntKeysOf('MonsterExcelConfigData').asyncMap(monsterId => ctrl.lb.selectMonsterById(monsterId)).then(monsters => {
       out.monsters = monsters.filter(m => !m.AnimalDescribe);
       out.wildlife = monsters.filter(m => !!m.AnimalDescribe);
     }),

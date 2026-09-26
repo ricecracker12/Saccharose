@@ -33,7 +33,7 @@ import { replaceAsync } from '../../../../shared/util/stringUtil.ts';
 import { isUnset } from '../../../../shared/util/genericUtil.ts';
 import { findFiles } from '../../../util/shellutil.ts';
 import path from 'path';
-import { standardElementCode } from '../../../../shared/types/genshin/manual-text-map.ts';
+import { standardElementCode } from '../misc/manual-text-map.ts';
 import { html2quotes, unnestHtmlTags } from '../../../../shared/mediawiki/mwQuotes.ts';
 import { loadGenshinTextSupportingData } from '../genshinText.ts';
 import { dialogueGenerateByNpc, NpcDialogueResult } from '../dialogue/basic_dialogue_generator.ts';
@@ -85,7 +85,7 @@ export class GCGControl {
     this.charIconsLcSet = new Set<string>(this.charIcons.map(s => s.toLowerCase().replace('.png', '')));
 
     this.charSkillDamageTable = await this.ctrl.cached('GCG:CharSkillDamageList', 'json', async () => {
-      const arr: GCGCharSkillDamage[] = await this.ctrl.readDataFile('./GCGCharSkillDamage.json');
+      const arr: GCGCharSkillDamage[] = await this.ctrl.readBaseDataFile('./GCGCharSkillDamage.json');
       return mapBy(arr, 'Name');
     });
 
@@ -174,7 +174,12 @@ export class GCGControl {
         return obj.WikiName;
       } else {
         const rawText = await this.ctrl.getTextMapItem(this.ctrl.outputLangCode, obj.NameTextMapHash);
-        const normText = this.ctrl.normText(rawText, this.ctrl.outputLangCode, { plaintext: false, decolor: false, sNum: toInt(sNumStr), skipHtml2Quotes: true });
+        const normText = this.ctrl.normText(rawText, this.ctrl.outputLangCode, {
+          plaintext: false,
+          decolor: false,
+          skipHtml2Quotes: true,
+          customOpts: { sNum: toInt(sNumStr) }
+        });
         return obj.WikiName !== normText ? `[[${obj.WikiName}|${normText}]]` : `[[${normText}]]`;
       }
     };
@@ -446,7 +451,7 @@ export class GCGControl {
         }
       }
       if (stage.BossLevel && stage.BossLevel.MonsterId) {
-        stage.BossLevel.Monster = await this.ctrl.selectMonsterById(stage.BossLevel.MonsterId);
+        stage.BossLevel.Monster = await this.ctrl.lb.selectMonsterById(stage.BossLevel.MonsterId);
       }
     }
     if (!disableLoad.disableWorldLevelLoad) {
@@ -739,15 +744,15 @@ export class GCGControl {
 
     switch (card.CardType) {
       case 'GCG_CARD_ASSIST':
-        card.WikiType = (await this.ctrl.selectManualTextMapConfigDataById('UI_GCG_CARD_TYPE_SUPPORT')).TextMapContentText;
+        card.WikiType = (await this.ctrl.manualtm.selectRecord('UI_GCG_CARD_TYPE_SUPPORT')).TextMapContentText;
         card.WikiTypeEN = 'Support Card';
         break;
       case 'GCG_CARD_EVENT':
-        card.WikiType = (await this.ctrl.selectManualTextMapConfigDataById('UI_GCG_CARD_TYPE_EVENT')).TextMapContentText;
+        card.WikiType = (await this.ctrl.manualtm.selectRecord('UI_GCG_CARD_TYPE_EVENT')).TextMapContentText;
         card.WikiTypeEN = 'Event Card';
         break;
       case 'GCG_CARD_MODIFY':
-        card.WikiType = (await this.ctrl.selectManualTextMapConfigDataById('UI_GCG_CARD_TYPE_EQUIP')).TextMapContentText;
+        card.WikiType = (await this.ctrl.manualtm.selectRecord('UI_GCG_CARD_TYPE_EQUIP')).TextMapContentText;
         card.WikiTypeEN = 'Equipment Card';
         break;
       case 'GCG_CARD_ONSTAGE':
@@ -755,11 +760,11 @@ export class GCGControl {
       case 'GCG_CARD_STATE':
         break;
       case 'GCG_CARD_SUMMON':
-        card.WikiType = (await this.ctrl.selectManualTextMapConfigDataById('UI_GCG_CARD_TYPE_SUMMON')).TextMapContentText;
+        card.WikiType = (await this.ctrl.manualtm.selectRecord('UI_GCG_CARD_TYPE_SUMMON')).TextMapContentText;
         card.WikiTypeEN = 'Summon';
         break;
       case 'GCG_CARD_CHARACTER':
-        card.WikiType = (await this.ctrl.selectManualTextMapConfigDataById('UI_GCG_CARD_TYPE_CHAR')).TextMapContentText;
+        card.WikiType = (await this.ctrl.manualtm.selectRecord('UI_GCG_CARD_TYPE_CHAR')).TextMapContentText;
         card.WikiTypeEN = 'Character Card';
         break;
     }

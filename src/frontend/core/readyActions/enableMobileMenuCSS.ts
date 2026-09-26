@@ -1,4 +1,4 @@
-import { getScrollbarWidth } from '../../util/domutil.ts';
+import { frag, getScrollbarWidth } from '../../util/domutil.ts';
 
 export default function() {
   const scrollbarWidth = getScrollbarWidth();

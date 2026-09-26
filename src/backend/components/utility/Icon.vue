@@ -1,20 +1,28 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { dragHandle, icon } from '../../routing/viewUtilities.ts';
-import { FeatherAttributes } from 'feather-icons';
+import { IconName, IconProps, iconSvg } from '../../../shared/util/iconProvider.ts';
 import { toInt } from '../../../shared/util/numberUtil.ts';
 
 export default defineComponent({
   name: 'Icon',
   props: {
-    name: { type: String, required: true },
+    name: { type: String as unknown as PropType<IconName>, required: true },
     size: { type: Number, required: false },
-    props: { type: Object as PropType<Partial<FeatherAttributes>>, required: false },
+    class: { type: String, required: false },
+    props: { type: Object as PropType<IconProps>, required: false },
   },
   setup(__props, { expose: __expose }) {
     __expose();
     const props = __props;
-    const html = props.name === 'drag-handle' ? dragHandle() : icon(props.name, toInt(props.size), props.props);
+    const featherProps: IconProps = props.props || {};
+    if (props.class) {
+      if (featherProps.class) {
+        featherProps.class += ' ' + props.class;
+      } else {
+        featherProps.class = props.class;
+      }
+    }
+    const html = iconSvg(props.name, toInt(props.size), featherProps);
     const __returned__ = { props, html };
     Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
     return __returned__;

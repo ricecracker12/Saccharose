@@ -16,7 +16,6 @@ export interface NormTextOptions<T = any> {
   decolor?: boolean,
   plaintext?: boolean,
   plaintextMcMode?: 'both' | 'male' | 'female',
-  sNum?: number,
   mcPlaceholderProvider?: (langCode: LangCode, degender?: boolean) => string,
   mcPlaceholderForceLangCode?: LangCode,
   forceFancyDash?: boolean,
@@ -116,10 +115,13 @@ export function genericNormText(text: string, langCode: LangCode, opts: NormText
   }
 
   text = text.replace(/{NICKNAME}|{PlayerName}/g, opts.mcPlaceholderProvider(opts.mcPlaceholderForceLangCode || langCode, true));
-  text = text.replace(/(\S){NON_BREAK_SPACE}(\S)/g, (fm, g1, g2) => {
+  text = text.replace(/(\S){NON_BREAK_SPACE}(\S)/g, (_fm, g1, g2) => {
     return `${g1} ${g2}`;
   });
   text = text.replace(/{NON_BREAK_SPACE}/g, opts.plaintext ? ' ' : '&nbsp;');
+  text = text.replace(/(\S)\u00A0(\S)/g, (_fm, g1, g2) => {
+    return `${g1} ${g2}`;
+  });
   text = text.replace(/\u00A0/g, opts.plaintext ? ' ' : '&nbsp;');
   text = text.replace(/<i>(.*?)<\/i>/gs, opts.plaintext ? '$1' : `''$1''`);
   text = text.replace(/<\/?c\d>/g, '');
@@ -165,7 +167,7 @@ export function genericNormText(text: string, langCode: LangCode, opts: NormText
   }
 
   if (opts.decolor || opts.plaintext) {
-    text = text.replace(/<color=#[^>]+>(.*?)<\/color>/gs, '$1');
+    text = text.replace(/<color=#?[^>]+>(.*?)<\/color>/gs, '$1');
   }
 
   // No longer needed as these are now automatically converted by Fandom or the OL module:

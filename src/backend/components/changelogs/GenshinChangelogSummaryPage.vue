@@ -146,13 +146,78 @@
         </div>
       </div>
 
+      <h3 id="new-byd-items-header" class="new-summary-section-header secondary-header valign">
+        <span class="expando spacer5-right" ui-action="expando: #new-byd-items-content"><Icon name="chevron-down" :size="17" /></span>
+        <span class="new-summary-section-title">BeyondUGC: New Items</span>
+        <span class="secondary-label new-summary-section-count">{{ newSummary.bydItems.length }}</span>
+      </h3>
+      <div id="new-byd-items-content" class="new-summary-section-content content alignStart flexWrap">
+        <template v-for="item of newSummary.bydItems">
+          <GenshinItem :item="item" />
+        </template>
+        <div v-if="!newSummary.bydItems.length">
+          <p>(None)</p>
+        </div>
+      </div>
+
+      <h3 id="new-byd-costumes-header" class="new-summary-section-header secondary-header valign">
+        <span class="expando spacer5-right" ui-action="expando: #new-byd-costumes-content"><Icon name="chevron-down" :size="17" /></span>
+        <span class="new-summary-section-title">BeyondUGC: New Costumes</span>
+        <span class="secondary-label new-summary-section-count">{{ newSummary.bydCostumes.length }}</span>
+      </h3>
+      <div id="new-byd-costumes-content" class="new-summary-section-content content alignStart flexWrap">
+        <template v-for="item of newSummary.bydCostumes">
+          <GenshinItem :item="item" />
+        </template>
+        <div v-if="!newSummary.bydCostumes.length">
+          <p>(None)</p>
+        </div>
+      </div>
+
+      <h3 id="new-byd-costume-suits-header" class="new-summary-section-header secondary-header valign">
+        <span class="expando spacer5-right" ui-action="expando: #new-byd-costume-suits-content"><Icon name="chevron-down" :size="17" /></span>
+        <span class="new-summary-section-title">BeyondUGC: New Costume Suits</span>
+        <span class="secondary-label new-summary-section-count">{{ newSummary.bydCostumeSuits.length }}</span>
+      </h3>
+      <div id="new-byd-costume-suits-content" class="new-summary-section-content content alignStart flexWrap">
+        <template v-for="item of newSummary.bydCostumeSuits">
+          <GenshinItem :item="item" />
+        </template>
+        <div v-if="!newSummary.bydCostumeSuits.length">
+          <p>(None)</p>
+        </div>
+      </div>
+
       <h3 id="new-artifacts-header" class="new-summary-section-header secondary-header valign">
         <span class="expando spacer5-right" ui-action="expando: #new-artifacts-content"><Icon name="chevron-down" :size="17" /></span>
-        <span class="new-summary-section-title">New Artifacts</span>
-        <span class="secondary-label new-summary-section-count">0</span>
+        <span class="new-summary-section-title">New Artifact Sets</span>
+        <span class="secondary-label new-summary-section-count">{{ newSummary.artifactSets.length }}</span>
       </h3>
-      <div id="new-artifacts-content" class="new-summary-section-content content alignStart flexWrap">
-        <p>Artifacts not implemented by {{ SITE_SHORT_TITLE }} at this time.</p>
+      <div id="new-artifacts-content" class="new-summary-section-content content">
+        <template v-for="set of newSummary.artifactSets">
+          <div class="card spacer10-bottom">
+            <hr />
+            <h3 class="content shade-4" style="padding:5px 10px">
+              <a :href="`/genshin/artifact-sets/${set.SetId}`" target="_blank" role="button" class="secondary" style="padding-left:5px">
+                <img class="framed-icon x32" :src="`/images/genshin/${set.SetIcon}.png`" loading="lazy" decoding="async" />
+                <span class="spacer10-left">{{ set.SetNameText }}</span>
+                <Icon name="external-link" class="spacer10-left" />
+              </a>
+            </h3>
+            <div class="content alignStart flexWrap">
+              <fieldset v-for="slot of valuesOf(set.ArtifactSlots)" class="spacer10-right">
+                <legend>{{ slot.EquipName }}</legend>
+                <div class="content">
+                  <GenshinItem :item="slot.RANK_4" :no-link="true" />
+                  <GenshinItem :item="slot.RANK_5" :no-link="true" />
+                </div>
+              </fieldset>
+            </div>
+          </div>
+        </template>
+        <div v-if="!newSummary.artifactSets.length">
+          <p>(None)</p>
+        </div>
       </div>
 
       <h3 id="new-furnishings-header" class="new-summary-section-header secondary-header valign">
@@ -577,7 +642,7 @@
         </div>
         <div v-for="mainQuest of newSummary.nonChapterQuests">
           <a class="secondary dispBlock spacer5-bottom textAlignLeft" role="button" :href="`/genshin/quests/${mainQuest.Id}`">
-            <strong>ID {{ mainQuest.Id }} {{ mainQuest.Type }}:&nbsp;</strong>
+            <strong>{{ mainQuest.Type }} {{ mainQuest.Id }}:&nbsp;</strong>
             <span>{{ mainQuest.TitleText }}</span>
           </a>
         </div>
@@ -628,7 +693,7 @@
         </div>
         <div v-for="mainQuest of newSummary.hiddenQuests">
           <a class="secondary dispBlock spacer5-bottom textAlignLeft" role="button" :href="`/genshin/quests/${mainQuest.Id}`">
-            <strong>ID {{ mainQuest.Id }}:&nbsp;</strong>
+            <strong>{{ mainQuest.Type }} {{ mainQuest.Id }}:&nbsp;</strong>
             <span>(No title)</span>
           </a>
         </div>

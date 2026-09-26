@@ -2,9 +2,9 @@ import { Knex } from 'knex';
 import {
   TextMapChangeEntity,
   TextMapChangeRef,
-  TextMapChangeRefs,
+  TextMapChangeRefs, TextMapChanges,
   TextMapChangesForDisplay,
-  TextMapFullChangelog,
+  TextMapFullChangelog, TextMapHashAggEntity, TextMapMultiChangeRefs,
 } from '../../../shared/types/changelog-types.ts';
 import { LangCode, TextMapHash } from '../../../shared/types/lang-types.ts';
 import { AbstractControl } from './abstractControl.ts';
@@ -38,7 +38,10 @@ export class TextMapChangelog {
     if (this.isDisabled)
       return [];
     return await this.knex.select('*').from('textmap_changes')
-      .where(cleanEmpty({version, lang_code: langCode}))
+      .where(cleanEmpty({
+        version,
+        lang_code: langCode
+      }))
       .then();
   }
 
@@ -68,6 +71,7 @@ export class TextMapChangelog {
       added: [],
       removed: [],
       updated: [],
+      superseded: [],
     };
 
     const normFunction = (str: string) => {
@@ -98,13 +102,20 @@ export class TextMapChangelog {
 
           out.updated.push({ textMapHash: row.hash, oldText, newText });
           break;
+        case 'superseded':
+          let oldHash = row.prev_hash;
+          let newHash = row.hash;
+          out.superseded.push({ oldTextMapHash: oldHash, newTextMapHash: newHash });
+          break;
       }
     }
 
     return out;
   }
 
-  async selectChangeRefs(hash: TextMapHash, langCode: LangCode, doNormText: boolean = false): Promise<TextMapChangeRefs> {
+  async selectChangeRefs(hash: TextMapHash,
+                         langCode: LangCode,
+                         doNormText: boolean = false): Promise<TextMapChangeRefs> {
     if (this.isDisabled)
       return new TextMapChangeRefs([]);
 
@@ -118,30 +129,37 @@ export class TextMapChangelog {
       }
     };
 
-    const rows: TextMapChangeEntity[] = await this.knex.select('*').from('textmap_changes')
-      .where({
-        hash: hash,
-        lang_code: langCode
-      })
+    const rows: TextMapChangeEntity[] = await this.knex.select('*')
+      .from('textmap_changes')
+      .where('lang_code', '=', langCode)
+      .andWhere('agg_id', '=',
+        this.knex('textmap_hash_aggs')
+          .select('agg_id')
+          .where('hash', '=', hash))
       .then();
 
     for (let row of rows) {
+      const gameVersion: GameVersion = this.ctrl.gameVersions.get(row.version);
       refs.push({
-        version: this.ctrl.gameVersions.get(row.version),
+        hash: row.hash,
+        aggId: row.agg_id,
+        version: gameVersion,
         changeType: row.change_type,
         value: doNorm(row.content),
         prevValue: doNorm(row.prev_content),
+        prevHash: row.prev_hash,
       });
     }
-    return new TextMapChangeRefs(refs);
+
+    const out = new TextMapChangeRefs(refs);
+    out.ensureSorted();
+    return out;
   }
 
-  async selectMultiChangeRefs(hashes: TextMapHash[], langCode: LangCode, doNormText: boolean = false): Promise<Record<TextMapHash, TextMapChangeRefs>> {
-    const out: Record<TextMapHash, TextMapChangeRefs> = {};
-
-    for (let hash of hashes) {
-      out[hash] = new TextMapChangeRefs([]);
-    }
+  async selectMultiChangeRefs(hashes: TextMapHash[],
+                              langCode: LangCode,
+                              doNormText: boolean = false): Promise<TextMapMultiChangeRefs> {
+    const out: TextMapMultiChangeRefs = new TextMapMultiChangeRefs();
 
     if (this.isDisabled || !hashes.length)
       return out;
@@ -156,17 +174,25 @@ export class TextMapChangelog {
 
     const rows: TextMapChangeEntity[] = await this.knex.select('*').from('textmap_changes')
       .where('lang_code', langCode)
-      .whereIn('hash', hashes)
+      .andWhere('agg_id', 'in',
+        this.knex('textmap_hash_aggs')
+          .select('agg_id')
+          .whereIn('hash', hashes))
       .then();
 
     for (let row of rows) {
-      out[row.hash].list.push({
-        version: this.ctrl.gameVersions.get(row.version),
+      const gameVersion: GameVersion = this.ctrl.gameVersions.get(row.version);
+      out.add({
+        hash: row.hash,
+        aggId: row.agg_id,
+        version: gameVersion,
         changeType: row.change_type,
         value: doNorm(row.content),
         prevValue: doNorm(row.prev_content),
+        prevHash: row.prev_hash,
       });
     }
+    out.ensureSorted();
     return out;
   }
 }
@@ -179,11 +205,83 @@ const isEmptyContent = (str: string) => typeof str === 'undefined' || str === nu
 /**
  * Convert JSON changelog to rows suitable for insertion
  */
-function convertJsonToEntities(json: TextMapFullChangelog, version: GameVersion): TextMapChangeEntity[] {
-  const rows: TextMapChangeEntity[] = [];
+async function convertJsonToEntities(knex: Knex, json: TextMapFullChangelog, version: GameVersion): Promise<TextMapChangeEntity[]> {
+  console.log('Converting JSON to entities...');
 
+  const rows: TextMapChangeEntity[] = [];
+  const allHashes: TextMapHash[] = [];
+  const supersedePairs: Array<{ oldHash: TextMapHash; newHash: TextMapHash }> = [];
+
+  // Collect all hashes
+  console.log('  Collecting hashes...');
   for (const langCode in json) {
-    const changes = json[langCode as LangCode];
+    const changes: TextMapChanges = json[langCode as LangCode];
+
+    for (const hash in changes.added) {
+      if (!isEmptyContent(changes.added[hash])) {
+        allHashes.push(hash as TextMapHash);
+      }
+    }
+
+    for (const hash in changes.removed) {
+      if (!isEmptyContent(changes.removed[hash])) {
+        allHashes.push(hash as TextMapHash);
+      }
+    }
+
+    for (const hash in changes.updated) {
+      allHashes.push(hash as TextMapHash);
+    }
+
+    for (let [oldHash, newHash] of Object.entries(changes.superseded)) {
+      allHashes.push(oldHash as TextMapHash);
+      supersedePairs.push({ oldHash: oldHash as TextMapHash, newHash: newHash as TextMapHash });
+    }
+  }
+
+  // Acquire all agg IDs in batch
+  console.log('  Acquiring Aggregate IDs for hashes...');
+  const hashToAggId: Record<TextMapHash, string> = {};
+
+  for (let chunkElement of chunk(allHashes, 5000)) {
+    await knex.transaction(async (trx) => {
+      Object.assign(hashToAggId, await acquireTmAggId(trx, chunkElement));
+    });
+  }
+
+  // Handle supersede pairs: save the new hash with Aggregate ID of old hash to ensure continuity of references across supersessions
+  if (supersedePairs.length > 0) {
+    console.log('  Saving superseding new hashes with old hash\'s Aggregate ID...');
+
+    // Supersede pairs are computed language-independently but recorded once per language code
+    // (see computeTextMapChanges.ts secondPass), so the same (oldHash, newHash) pair legitimately
+    // appears once per language here. Deduplicate by the pair itself before converting to
+    // hash/agg_id save pairs, so genuine per-language repeats don't look like conflicts downstream.
+    const seenSupersedePairs = new Set<string>();
+    const dedupedSupersedePairs = supersedePairs.filter(pair => {
+      const key = `${pair.oldHash}|${pair.newHash}`;
+      if (seenSupersedePairs.has(key)) {
+        return false;
+      }
+      seenSupersedePairs.add(key);
+      return true;
+    });
+
+    const supersedeSavePairs: HashAggIdPair[] = dedupedSupersedePairs.map(pair => ({
+      hash: pair.newHash,
+      aggId: hashToAggId[pair.oldHash],
+    }));
+    for (let chunkElement of chunk(supersedeSavePairs, 5000)) {
+      await knex.transaction(async (trx) => {
+        await saveTmAggId(trx, chunkElement);
+      });
+    }
+  }
+
+  // Build rows
+  console.log('  Building rows...');
+  for (const langCode in json) {
+    const changes: TextMapChanges = json[langCode as LangCode];
 
     // Added
     for (const hash in changes.added) {
@@ -194,6 +292,7 @@ function convertJsonToEntities(json: TextMapFullChangelog, version: GameVersion)
         version: version.number,
         lang_code: langCode as LangCode,
         hash,
+        agg_id: hashToAggId[hash],
         change_type: 'added',
         content: changes.added[hash],
       });
@@ -208,6 +307,7 @@ function convertJsonToEntities(json: TextMapFullChangelog, version: GameVersion)
         version: version.number,
         lang_code: langCode as LangCode,
         hash,
+        agg_id: hashToAggId[hash],
         change_type: 'removed',
         content: changes.removed[hash],
       });
@@ -220,9 +320,22 @@ function convertJsonToEntities(json: TextMapFullChangelog, version: GameVersion)
         version: version.number,
         lang_code: langCode as LangCode,
         hash,
+        agg_id: hashToAggId[hash],
         change_type: 'updated',
         content: change.newValue,
         prev_content: change.oldValue,
+      });
+    }
+
+    // Superseded
+    for (let [oldHash, newHash] of Object.entries(changes.superseded)) {
+      rows.push({
+        version: version.number,
+        lang_code: langCode as LangCode,
+        hash: newHash,
+        prev_hash: oldHash,
+        agg_id: hashToAggId[oldHash],
+        change_type: 'superseded',
       });
     }
   }
@@ -230,13 +343,13 @@ function convertJsonToEntities(json: TextMapFullChangelog, version: GameVersion)
   return rows;
 }
 
-export function convertEntitiesToJson(
+function convertEntitiesToJson(
   entities: TextMapChangeEntity[]
 ): TextMapFullChangelog {
   const result: Partial<TextMapFullChangelog> = {};
 
   for (const row of entities) {
-    const { lang_code, hash, change_type, content, prev_content } = row;
+    const { lang_code, hash, prev_hash, change_type, content, prev_content } = row;
 
     if (!result[lang_code]) {
       result[lang_code] = {
@@ -244,6 +357,7 @@ export function convertEntitiesToJson(
         added: {},
         removed: {},
         updated: {},
+        superseded: {}
       };
     }
 
@@ -262,6 +376,9 @@ export function convertEntitiesToJson(
           oldValue: prev_content,
         };
         break;
+      case 'superseded':
+        changes.superseded[prev_hash] = hash;
+        break;
     }
   }
 
@@ -272,11 +389,11 @@ export function convertEntitiesToJson(
 // region IMPORTER
 // --------------------------------------------------------------------------------------------------------------
 
-/** Utility function: split an array into chunks of given size */
-function chunk<T>(arr: T[], size: number): T[][] {
+/** Utility function: split an array into chunks of the given size */
+function chunk<T>(arr: T[], chunkSize: number): T[][] {
   const result: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) {
-    result.push(arr.slice(i, i + size));
+  for (let i = 0; i < arr.length; i += chunkSize) {
+    result.push(arr.slice(i, i + chunkSize));
   }
   return result;
 }
@@ -290,9 +407,9 @@ export async function importTextMapChanges(
   version: GameVersion,
   batchSize = 5000
 ) {
-  const rows: TextMapChangeEntity[] = convertJsonToEntities(json, version);
+  const rows: TextMapChangeEntity[] = await convertJsonToEntities(knex, json, version);
 
-  console.log('-'.repeat(100))
+  console.log('-'.repeat(100));
   console.log(`[${version.number}] Inserting textmap changelog for ${version.label} - ${rows.length} entitites`);
 
   let deletedCount = await knex('textmap_changes')
@@ -316,5 +433,130 @@ export async function importTextMapChanges(
   });
 
   console.log(`[${version.number}] Done`);
+}
+
+/**
+ * Acquire aggregate IDs for the given hashes in the batch. Either returns existing aggregate IDs for the hashes
+ * or generates new ones if hashes are not yet in the database, inserts those into the database and returns them.
+ * @param db
+ * @param hashes
+ */
+async function acquireTmAggId(db: Knex|Knex.Transaction, hashes: TextMapHash[]): Promise<Record<TextMapHash, string>> {
+  if (!hashes.length) {
+    return {};
+  }
+
+  // Convert to string for deduplication, then back to original
+  const hashStringMap = new Map<string, TextMapHash>();
+  const uniqueHashes: TextMapHash[] = [];
+  for (const hash of hashes) {
+    const hashStr = String(hash);
+    if (!hashStringMap.has(hashStr)) {
+      hashStringMap.set(hashStr, hash);
+      uniqueHashes.push(hash);
+    }
+  }
+
+  const result: Record<TextMapHash, string> = {};
+
+  // Try to insert all hashes at once
+  const insertedRows = await db<TextMapHashAggEntity>("textmap_hash_aggs")
+    .insert(uniqueHashes.map(hash => ({
+      hash,
+      agg_id: db.raw("gen_random_uuid()"),
+    })))
+    .onConflict("hash")
+    .ignore()
+    .returning<{ hash: TextMapHash; agg_id: string }[]>(["hash", "agg_id"]);
+
+  // Add the newly inserted rows to the result
+  for (const row of insertedRows) {
+    result[row.hash] = row.agg_id;
+  }
+
+  // Query for hashes that already existed (those not in insertedRows)
+  const insertedHashStrs = new Set(insertedRows.map(row => String(row.hash)));
+  const missingHashes = uniqueHashes.filter(hash => !insertedHashStrs.has(String(hash)));
+
+  if (missingHashes.length > 0) {
+    const existingRows = await db<TextMapHashAggEntity>("textmap_hash_aggs")
+      .select(["hash", "agg_id"])
+      .whereIn("hash", missingHashes.map(h => String(h)) as any);
+
+    for (const row of existingRows) {
+      result[row.hash] = row.agg_id;
+    }
+
+    // Verify all hashes were found
+    for (const hash of missingHashes) {
+      if (!result[hash]) {
+        throw new Error(
+          `Failed to get agg_id for hash ${hash}; row conflicted but was not visible`,
+        );
+      }
+    }
+  }
+
+  return result;
+}
+
+type HashAggIdPair = { hash: TextMapHash; aggId: string };
+
+async function saveTmAggId(db: Knex|Knex.Transaction, pairs: HashAggIdPair[]): Promise<void> {
+  if (!pairs.length) {
+    return;
+  }
+
+  // Deduplicate by hash to avoid "ON CONFLICT DO UPDATE command cannot affect row a second time",
+  // which happens if the same hash appears more than once within a single insert batch
+  // (e.g., the same new hash superseding an old hash across multiple languages). The last pair wins.
+  // Duplicates aren't expected, so log them if found for investigation.
+  // Deduplicate by hash to avoid "ON CONFLICT DO UPDATE command cannot affect row a second time",
+  // which happens if the same hash appears more than once within a single insert batch. Expected,
+  // harmless duplicates (e.g. the same supersede pair recorded once per language) are deduped
+  // silently. Only genuinely conflicting agg_id values for the same hash are logged, since those
+  // indicate unexpected/inconsistent data worth investigating.
+  const dedupedPairs = new Map<string, HashAggIdPair>();
+  for (const pair of pairs) {
+    const hashStr = String(pair.hash);
+    const existing = dedupedPairs.get(hashStr);
+    if (existing && existing.aggId !== pair.aggId) {
+      console.warn(
+        `  [WARN] Conflicting agg_id for hash ${hashStr}: ` +
+        `${existing.aggId} -> ${pair.aggId} (keeping latter)`,
+      );
+    }
+    dedupedPairs.set(hashStr, pair);
+  }
+
+  await db<TextMapHashAggEntity>("textmap_hash_aggs")
+    .insert(Array.from(dedupedPairs.values()).map(pair => ({
+      hash: pair.hash,
+      agg_id: pair.aggId,
+    })))
+    .onConflict("hash")
+    .merge();
+}
+// endregion
+
+// region BACKFILLER
+export async function backfillTextmapHashAggs(knex: Knex) {
+  const hashes: string[] = (
+    await knex('textmap_changes').distinct<{ hash: string }[]>('hash')
+  ).map(row => row.hash);
+
+  const hashChunks = chunk(hashes, 1000);
+
+  console.log('Chunk count: ' + hashChunks.length);
+
+  let numChunksLooped = 0;
+  for (let hashChunk of hashChunks) {
+    console.log(`Chunk ${++numChunksLooped} of ${hashChunks.length}`);
+    await knex.transaction(async (trx) => {
+      await acquireTmAggId(trx, hashChunk as TextMapHash[]);
+    });
+  }
+
+  console.log('Done');
 }
 // endregion

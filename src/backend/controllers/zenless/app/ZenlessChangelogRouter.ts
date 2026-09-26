@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { create } from '../../../routing/router.ts';
+import { create } from '../../../rendering/customRouter.ts';
 import ChangelogListPage from '../../../components/changelogs/ChangelogListPage.vue';
 import { ZenlessVersions } from '../../../../shared/types/game-versions.ts';
 import { queryTab } from '../../../middleware/util/queryTab.ts';
@@ -39,7 +39,7 @@ export default async function(): Promise<Router> {
       true
     );
 
-    const activeTab = queryTab(req, 'added', 'updated', 'removed');
+    const activeTab = queryTab(req, 'added', 'updated', 'removed', 'superseded');
 
     await res.renderComponent(ChangelogTextMapPage, {
       title: 'Zenless TextMap Diff ' + gameVersion.displayLabel,
