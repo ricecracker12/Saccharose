@@ -2518,7 +2518,7 @@ export class GenshinControl extends AbstractControl<GenshinControlState> {
   // region Materials & Items
   async selectMaterialIdFromFurnitureSuiteId(furnitureSuitId: number): Promise<number> {
     return await this.knex.select('MaterialId').from('Relation_FurnitureSuiteToMaterial')
-      .where({FurnitureSuiteId: furnitureSuitId}).first().then(x => x.MaterialId);
+      .where({FurnitureSuiteId: furnitureSuitId}).first().then(x => x?.MaterialId);
   }
 
   async selectMaterialIdFromFurnitureId(furnitureId: number): Promise<number> {
