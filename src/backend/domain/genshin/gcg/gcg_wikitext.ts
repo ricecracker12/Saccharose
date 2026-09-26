@@ -165,7 +165,7 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
     sb.line();
   }
   if (deckCard && deckCard.ProficiencyReward && deckCard.ProficiencyReward.ProficiencyRewardList.length) {
-    sb.line('==Thưởng Độ Thuần Phục==');
+    const profLines: string[] = [];
     for (let prof of deckCard.ProficiencyReward.ProficiencyRewardList) {
       const cardFaceItem = prof?.Reward?.RewardItemList
         ?.find(item => item?.Material?.MaterialType === 'MATERIAL_GCG_CARD_FACE')?.Material;
@@ -173,14 +173,19 @@ export async function generateCardPage(gcg: GCGControl, card: GCGCommonCard): Pr
         const golden: boolean = cardFaceItem.Icon?.toLowerCase()?.includes('gold') || false;
         const platinum: boolean = cardFaceItem.Icon?.toLowerCase()?.includes('platinum') || false;
         if (platinum) {
-          sb.line(`Sau khi Độ Thuần Thục đạt cấp ${prof.Proficiency}, người chơi sẽ nhận được Mặt Bài Lấp Lánh sau:<br>` +
+          profLines.push(`Sau khi Độ Thuần Thục đạt cấp ${prof.Proficiency}, người chơi sẽ nhận được Mặt Bài Lấp Lánh sau:<br>` +
             `{{TCG Card|${cardFaceItem.NameText}|1|platinum=1|caption=1}}`);
-          sb.line();
         } else if (golden) {
-          sb.line(`Sau khi Độ Thuần Thục đạt cấp ${prof.Proficiency}, người chơi sẽ nhận được Mặt Bài Kỳ Ảo sau:<br>` +
+          profLines.push(`Sau khi Độ Thuần Thục đạt cấp ${prof.Proficiency}, người chơi sẽ nhận được Mặt Bài Kỳ Ảo sau:<br>` +
             `{{TCG Card|${cardFaceItem.NameText}|1|golden=1|caption=1}}`);
-          sb.line();
         }
+      }
+    }
+    if (profLines.length) {
+      sb.line('==Thưởng Độ Thuần Thục==');
+      for (let profLine of profLines) {
+        sb.line(profLine);
+        sb.line();
       }
     }
   }
